@@ -21,6 +21,7 @@ interface HistoryEntry {
   winner: string;
   userTeam: string;
   userPoints: number;
+  userRank: number;
 }
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
   const [logs, setLogs] = useState<string[]>([]);
   const [news, setNews] = useState<string[]>(['Bem-vindo à nova temporada do Brasfoot NextGen!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [lastReward, setLastReward] = useState<number>(0);
 
   const [teams, setTeams] = useState<Team[]>([
     { name: 'Flamengo', points: 0, played: 0 },
@@ -83,14 +85,25 @@ export default function App() {
   const simulateRound = () => {
     if (round >= 6) {
       const winner = teams[0].name;
-      const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
-      const newHistory = [{ season: seasonCount, winner, userTeam: myTeam, userPoints }, ...history];
+      const userIndex = teams.findIndex(t => t.name === myTeam);
+      const userPoints = teams[userIndex]?.points || 0;
+      const userRank = userIndex + 1;
 
+      // Premiação por colocação
+      let reward = 5000000;
+      if (userRank === 1) reward = 20000000;
+      else if (userRank === 2) reward = 12000000;
+      else if (userRank === 3) reward = 8000000;
+
+      setLastReward(reward);
+      setMoney(prev => prev + reward);
+
+      const newHistory = [{ season: seasonCount, winner, userTeam: myTeam, userPoints, userRank }, ...history];
       setHistory(newHistory);
       setScreen('champion');
 
       localStorage.setItem('brasfoot_save', JSON.stringify({
-        myTeam, money, round, seasonCount, teams, squad, history: newHistory
+        myTeam, money: money + reward, round, seasonCount, teams, squad, history: newHistory
       }));
       return;
     }
@@ -120,7 +133,6 @@ export default function App() {
     newTeams.sort((a, b) => b.points - a.points);
     setTeams(newTeams);
 
-    // Atualiza gols dos atacantes/meias
     const updatedSquad = squad.map(p => {
       let newGoals = p.goals;
       if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.4) {
@@ -181,6 +193,8 @@ export default function App() {
     }
   };
 
+  const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
+
   return (
     <div style={{ padding: '16px', color: '#fff', minHeight: '100vh', background: '#0f172a', fontFamily: 'sans-serif' }}>
       <header style={{ textAlign: 'center', marginBottom: '16px' }}>
@@ -213,9 +227,17 @@ export default function App() {
 
       {screen === 'champion' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
+          <h1 style={{ fontSize: '26px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
           <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão: {teams[0].name}</p>
-          <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '16px 0' }}>Seu time encerrou com {teams.find(t => t.name === myTeam)?.points} pontos.</p>
+
+          {/* Trata o plural de pontos e exibe bônus financeiro */}
+          <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '12px 0 4px 0' }}>
+            Seu time encerrou com {userPoints} {userPoints === 1 ? 'ponto' : 'pontos'}.
+          </p>
+          <p style={{ color: '#eab308', fontWeight: 'bold', fontSize: '14px', marginBottom: '20px' }}>
+            💵 Bônus da Temporada: +R$ {(lastReward / 1000000).toFixed(1)}M
+          </p>
+
           <button onClick={resetForNextSeason} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%' }}>
             Iniciar Temporada {seasonCount + 1}
           </button>
@@ -224,9 +246,8 @@ export default function App() {
 
       {screen === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Header corrigido para evitar sobreposição */}
           <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', pb: '8px', paddingBottom: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '8px', marginBottom: '8px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold', display: 'block' }}>CLUBE ATUAL</span>
                 <strong style={{ fontSize: '18px' }}>{myTeam}</strong>
@@ -345,7 +366,7 @@ export default function App() {
                   {history.map((h, i) => (
                     <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                       <div style={{ fontWeight: 'bold', color: '#eab308' }}>🏆 Temporada {h.season}: Campeão {h.winner}</div>
-                      <div style={{ color: '#cbd5e1', fontSize: '12px' }}>Seu time ({h.userTeam}): {h.userPoints} pts</div>
+                      <div style={{ color: '#cbd5e1', fontSize: '12px' }}>Seu time ({h.userTeam}): {h.userRank}º Lugar ({h.userPoints} pts)</div>
                     </div>
                   ))}
                 </div>
