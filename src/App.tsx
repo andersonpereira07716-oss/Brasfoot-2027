@@ -24,6 +24,13 @@ interface Player {
   age: number;
 }
 
+interface Achievement {
+  id: string;
+  title: string;
+  desc: string;
+  unlocked: boolean;
+}
+
 interface HistoryEntry {
   season: number;
   winner: string;
@@ -36,21 +43,28 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'scout' | 'topscorers' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'scout' | 'trophies' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
   const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
-  const [loan, setLoan] = useState<number>(0);
+  const [managerReputation, setManagerReputation] = useState<number>(50);
   const [sponsorBonus, setSponsorBonus] = useState<number>(2000000);
-  const [news, setNews] = useState<string[]>(['🚀 Brasfoot NextGen Pro: Olheiros, Moral e Sistema de Saves integrados!']);
+  const [news, setNews] = useState<string[]>(['🚀 Brasfoot NextGen Pro Max: Sala de Troféus e Reputação de Técnico ativadas!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [lastReward, setLastReward] = useState<number>(0);
   const [marketFilter, setMarketFilter] = useState<string>('ALL');
 
   const [cupPhase, setCupPhase] = useState<'Semifinal' | 'Final' | 'Encerrada'>('Semifinal');
   const [cupWinner, setCupWinner] = useState<string>('Em andamento');
+
+  const [achievements, setAchievements] = useState<Achievement[]>([
+    { id: 'first_win', title: 'Primeiros Passos', desc: 'Vença sua primeira partida na Liga', unlocked: false },
+    { id: 'cup_champ', title: 'Rei do Mata-Mata', desc: 'Conquiste a Copa Nacional', unlocked: false },
+    { id: 'rich', title: 'Cofre Cheio', desc: 'Acumule mais de R$ 80M em caixa', unlocked: false },
+    { id: 'stadium_master', title: 'Arena Monumental', desc: 'Expanda o estádio para 60.000 lugares', unlocked: false }
+  ]);
 
   const [teams, setTeams] = useState<Team[]>([
     { name: 'Flamengo', points: 0, played: 0, division: 'A', stadiumCapacity: 50000 },
@@ -81,18 +95,19 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_pro_ultra');
+    const savedData = localStorage.getItem('brasfoot_save_pro_max');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
         setMyTeam(parsed.myTeam || '');
         setMoney(parsed.money || 50000000);
-        setLoan(parsed.loan || 0);
+        setManagerReputation(parsed.managerReputation || 50);
         setRound(parsed.round || 1);
         setSeasonCount(parsed.seasonCount || 1);
         if (parsed.teams) setTeams(parsed.teams);
         if (parsed.squad) setSquad(parsed.squad);
         if (parsed.history) setHistory(parsed.history);
+        if (parsed.achievements) setAchievements(parsed.achievements);
         if (parsed.myTeam) setScreen('dashboard');
       } catch (e) {
         console.error("Erro ao carregar save", e);
@@ -101,8 +116,12 @@ export default function App() {
   }, []);
 
   const saveGame = () => {
-    const dataToSave = { myTeam, money, loan, round, seasonCount, teams, squad, history };
-    localStorage.setItem('brasfoot_save_pro_ultra', JSON.stringify(dataToSave));
+    const dataToSave = { myTeam, money, managerReputation, round, seasonCount, teams, squad, history, achievements };
+    localStorage.setItem('brasfoot_save_pro_max', JSON.stringify(dataToSave));
+  };
+
+  const unlockAchievement = (id: string) => {
+    setAchievements(prev => prev.map(a => a.id === id ? { ...a, unlocked: true } : a));
   };
 
   const calculatePayroll = () => squad.reduce((total, p) => total + p.salary, 0);
@@ -113,9 +132,14 @@ export default function App() {
       alert('Você precisa de R$ 12.0M para ampliar o estádio!');
       return;
     }
-    setMoney(money - cost);
-    setTeams(teams.map(t => t.name === myTeam ? { ...t, stadiumCapacity: t.stadiumCapacity + 10000 } : t));
+    const newMoney = money - cost;
+    setMoney(newMoney);
+    const updatedTeams = teams.map(t => t.name === myTeam ? { ...t, stadiumCapacity: t.stadiumCapacity + 10000 } : t);
+    setTeams(updatedTeams);
     setNews([`🏟️ ESTÁDIO: Ampliação concluída! +10.000 lugares adicionados.`, ...news]);
+    
+    const myCap = updatedTeams.find(t => t.name === myTeam)?.stadiumCapacity || 0;
+    if (myCap >= 60000) unlockAchievement('stadium_master');
     saveGame();
   };
 
@@ -154,21 +178,29 @@ export default function App() {
       const userRank = userIndex + 1;
 
       let reward = 5000000;
-      if (userRank === 1) reward = 30000000;
-      else if (userRank === 2) reward = 20000000;
-      else if (userRank === 3) reward = 12000000;
+      if (userRank === 1) {
+        reward = 30000000;
+        setManagerReputation(prev => Math.min(100, prev + 15));
+      } else if (userRank === 2) {
+        reward = 20000000;
+        setManagerReputation(prev => Math.min(100, prev + 8));
+      } else {
+        reward = 12000000;
+      }
 
       const bestPlayer = [...squad].sort((a, b) => b.goals - a.goals)[0]?.name || 'Pedro';
 
       setLastReward(reward);
-      setMoney(prev => prev + reward);
+      const newMoney = money + reward;
+      setMoney(newMoney);
+      if (newMoney >= 80000000) unlockAchievement('rich');
 
       const newHistory = [{ season: seasonCount, winner, userTeam: myTeam, userPoints, userRank, cupWinner, mvp: bestPlayer }, ...history];
       setHistory(newHistory);
       setScreen('champion');
 
-      localStorage.setItem('brasfoot_save_pro_ultra', JSON.stringify({
-        myTeam, money: money + reward, loan, round, seasonCount, teams, squad, history: newHistory
+      localStorage.setItem('brasfoot_save_pro_max', JSON.stringify({
+        myTeam, money: newMoney, managerReputation, round, seasonCount, teams, squad, history: newHistory, achievements
       }));
       return;
     }
@@ -176,24 +208,22 @@ export default function App() {
     const newTeams = [...teams];
     const match1A = newTeams[0];
     const match1B = newTeams[1];
-    const match2A = newTeams[2];
-    const match2B = newTeams[3];
 
     const tacticBonus = tactics === '4-3-3' ? 1 : 0;
     const score1A = Math.floor(Math.random() * (4 + tacticBonus));
     const score1B = Math.floor(Math.random() * 4);
-    const score2A = Math.floor(Math.random() * 4);
-    const score2B = Math.floor(Math.random() * 4);
 
     newTeams.forEach(t => t.played += 1);
 
-    if (score1A > score1B) match1A.points += 3;
-    else if (score1B > score1A) match1B.points += 3;
-    else { match1A.points += 1; match1B.points += 1; }
-
-    if (score2A > score2B) match2A.points += 3;
-    else if (score2B > score2A) match2B.points += 3;
-    else { match2A.points += 1; match2B.points += 1; }
+    if (score1A > score1B) {
+      match1A.points += 3;
+      if (match1A.name === myTeam) unlockAchievement('first_win');
+    } else if (score1B > score1A) {
+      match1B.points += 3;
+    } else {
+      match1A.points += 1;
+      match1B.points += 1;
+    }
 
     newTeams.sort((a, b) => b.points - a.points);
     setTeams(newTeams);
@@ -211,16 +241,12 @@ export default function App() {
       let isInjured = p.injured;
       let isSuspended = p.suspended;
       let cards = p.yellowCards;
-      let newMorale = p.morale;
 
       if (isInjured) isInjured = false;
       if (isSuspended) { isSuspended = false; cards = 0; }
 
       if (!isInjured && !isSuspended) {
-        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.35) {
-          newGoals += 1;
-          newMorale = Math.min(100, newMorale + 5);
-        }
+        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.35) newGoals += 1;
         if (Math.random() < 0.2) {
           cards += 1;
           if (cards >= 2) {
@@ -240,7 +266,6 @@ export default function App() {
         injured: isInjured, 
         suspended: isSuspended, 
         yellowCards: cards,
-        morale: newMorale,
         energy: isInjured ? 50 : Math.max(30, p.energy - Math.floor(Math.random() * 8 + 4)) 
       };
     });
@@ -270,6 +295,7 @@ export default function App() {
       setCupWinner(winner);
       if (winner === myTeam) {
         setMoney(money + 15000000);
+        unlockAchievement('cup_champ');
         setNews([`🏆 CAMPEÃO DA COPA! O ${myTeam} conquistou o título e faturou R$ 15.0M!`, ...news]);
       } else {
         setNews([`🥈 VICE-CAMPEÃO: O ${myTeam} ficou em 2º lugar na Copa.`, ...news]);
@@ -331,7 +357,7 @@ export default function App() {
 
   const resetAllData = () => {
     if (confirm('Deseja apagar todo o progresso do jogo?')) {
-      localStorage.removeItem('brasfoot_save_pro_ultra');
+      localStorage.removeItem('brasfoot_save_pro_max');
       window.location.reload();
     }
   };
@@ -401,7 +427,7 @@ export default function App() {
               </div>
             </div>
             <div style={{ fontSize: '12px', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Folha Salarial: <strong>R$ {(calculatePayroll() / 1000).toFixed(0)}k/jogo</strong></span>
+              <span>Reputação Técnico: <strong style={{ color: '#eab308' }}>{managerReputation}/100 ⭐</strong></span>
               <span>Rodada Liga: <strong>{round}/6</strong></span>
             </div>
           </div>
@@ -411,9 +437,9 @@ export default function App() {
             <button onClick={() => setTab('cup')} style={{ flex: 1, background: tab === 'cup' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Copa 🏆</button>
             <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
             <button onClick={() => setTab('scout')} style={{ flex: 1, background: tab === 'scout' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Olheiro 🔍</button>
+            <button onClick={() => setTab('trophies')} style={{ flex: 1, background: tab === 'trophies' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Troféus 🎖️</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
             <button onClick={() => setTab('stadium')} style={{ flex: 1, background: tab === 'stadium' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Estádio</button>
-            <button onClick={() => setTab('topscorers')} style={{ flex: 1, background: tab === 'topscorers' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Artilharia</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
             <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Galeria</button>
           </div>
@@ -446,6 +472,23 @@ export default function App() {
                 </table>
               </div>
             </>
+          )}
+
+          {tab === 'trophies' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Sala de Conquistas & Troféus</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {achievements.map((a) => (
+                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: '#0f172a', borderRadius: '8px', border: a.unlocked ? '1px solid #eab308' : '1px solid #334155' }}>
+                    <div style={{ fontSize: '24px' }}>{a.unlocked ? '🏆' : '🔒'}</div>
+                    <div>
+                      <strong style={{ color: a.unlocked ? '#eab308' : '#94a3b8', fontSize: '14px' }}>{a.title}</strong>
+                      <div style={{ color: '#cbd5e1', fontSize: '12px' }}>{a.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {tab === 'scout' && (
@@ -532,23 +575,6 @@ export default function App() {
                       <div style={{ color: '#4ade80', fontWeight: 'bold' }}>R$ {(p.value / 1000000).toFixed(1)}M</div>
                     </div>
                     <button onClick={() => buyPlayer(p)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold' }}>Comprar</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {tab === 'topscorers' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Artilharia do Elenco</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {sortedScorers.map((p, idx) => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
-                    <div>
-                      <span style={{ color: '#eab308', fontWeight: 'bold', marginRight: '8px' }}>#{idx + 1}</span>
-                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
-                    </div>
-                    <strong style={{ color: '#4ade80' }}>⚽ {p.goals} Gols</strong>
                   </div>
                 ))}
               </div>
