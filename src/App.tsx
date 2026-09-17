@@ -13,6 +13,7 @@ interface Player {
   overall: number;
   energy: number;
   value: number;
+  goals: number;
 }
 
 interface HistoryEntry {
@@ -42,20 +43,19 @@ export default function App() {
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
-    { id: 1, name: 'Weverton', pos: 'GOL', overall: 82, energy: 100, value: 5000000 },
-    { id: 2, name: 'Gomez', pos: 'DEF', overall: 84, energy: 95, value: 12000000 },
-    { id: 3, name: 'Murilo', pos: 'DEF', overall: 80, energy: 92, value: 8000000 },
-    { id: 4, name: 'Veiga', pos: 'MEI', overall: 85, energy: 88, value: 15000000 },
-    { id: 5, name: 'Estêvão', pos: 'ATA', overall: 83, energy: 90, value: 20000000 },
+    { id: 1, name: 'Weverton', pos: 'GOL', overall: 82, energy: 100, value: 5000000, goals: 0 },
+    { id: 2, name: 'Gomez', pos: 'DEF', overall: 84, energy: 95, value: 12000000, goals: 0 },
+    { id: 3, name: 'Murilo', pos: 'DEF', overall: 80, energy: 92, value: 8000000, goals: 0 },
+    { id: 4, name: 'Veiga', pos: 'MEI', overall: 85, energy: 88, value: 15000000, goals: 0 },
+    { id: 5, name: 'Estêvão', pos: 'ATA', overall: 83, energy: 90, value: 20000000, goals: 0 },
   ]);
 
   const [market, setMarket] = useState<Player[]>([
-    { id: 101, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 100, value: 18000000 },
-    { id: 102, name: 'Calleri', pos: 'ATA', overall: 81, energy: 100, value: 10000000 },
-    { id: 103, name: 'Yuri Alberto', pos: 'ATA', overall: 79, energy: 100, value: 7000000 },
+    { id: 101, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 100, value: 18000000, goals: 0 },
+    { id: 102, name: 'Calleri', pos: 'ATA', overall: 81, energy: 100, value: 10000000, goals: 0 },
+    { id: 103, name: 'Yuri Alberto', pos: 'ATA', overall: 79, energy: 100, value: 7000000, goals: 0 },
   ]);
 
-  // Carregar dados salvos
   useEffect(() => {
     const savedData = localStorage.getItem('brasfoot_save');
     if (savedData) {
@@ -75,7 +75,6 @@ export default function App() {
     }
   }, []);
 
-  // Salvar progresso
   const saveGame = () => {
     const dataToSave = { myTeam, money, round, seasonCount, teams, squad, history };
     localStorage.setItem('brasfoot_save', JSON.stringify(dataToSave));
@@ -90,7 +89,6 @@ export default function App() {
       setHistory(newHistory);
       setScreen('champion');
 
-      // Salva histórico no encerramento
       localStorage.setItem('brasfoot_save', JSON.stringify({
         myTeam, money, round, seasonCount, teams, squad, history: newHistory
       }));
@@ -122,13 +120,17 @@ export default function App() {
     newTeams.sort((a, b) => b.points - a.points);
     setTeams(newTeams);
 
-    setSquad(squad.map(p => ({ ...p, energy: Math.max(40, p.energy - Math.floor(Math.random() * 6 + 3)) })));
-    setMoney(prev => prev + 1500000);
+    // Atualiza gols dos atacantes/meias
+    const updatedSquad = squad.map(p => {
+      let newGoals = p.goals;
+      if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.4) {
+        newGoals += 1;
+      }
+      return { ...p, goals: newGoals, energy: Math.max(40, p.energy - Math.floor(Math.random() * 6 + 3)) };
+    });
 
-    if (Math.random() > 0.5) {
-      const randomPlayer = squad[Math.floor(Math.random() * squad.length)];
-      setNews([`📰 Destaque: ${randomPlayer.name} atuou bem na tática ${tactics}!`, ...news]);
-    }
+    setSquad(updatedSquad);
+    setMoney(prev => prev + 1500000);
 
     setLogs([
       `Rodada ${round}: ${match1A.name} ${score1A} x ${score1B} ${match1B.name}`,
@@ -222,16 +224,21 @@ export default function App() {
 
       {screen === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold' }}>CLUBE ATUAL ({myTeam})</span>
-              <h2 style={{ margin: '2px 0 0 0', fontSize: '18px' }}>Temp. {seasonCount} - Rodada {round}/6</h2>
+          {/* Header corrigido para evitar sobreposição */}
+          <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', pb: '8px', paddingBottom: '8px', marginBottom: '8px' }}>
+              <div>
+                <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold', display: 'block' }}>CLUBE ATUAL</span>
+                <strong style={{ fontSize: '18px' }}>{myTeam}</strong>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold', display: 'block' }}>SALDO</span>
+                <strong style={{ color: '#4ade80', fontSize: '16px' }}>R$ {(money / 1000000).toFixed(1)}M</strong>
+              </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold' }}>SALDO</span>
-              <p style={{ margin: '2px 0 0 0', color: '#4ade80', fontWeight: 'bold', fontSize: '15px' }}>
-                R$ {(money / 1000000).toFixed(1)}M
-              </p>
+            <div style={{ fontSize: '12px', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
+              <span>Temporada: <strong>{seasonCount}</strong></span>
+              <span>Rodada: <strong>{round}/6</strong></span>
             </div>
           </div>
 
@@ -289,7 +296,7 @@ export default function App() {
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
                       <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
-                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | ⚡ {p.energy}%</div>
+                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | ⚡ {p.energy}% | ⚽ {p.goals} Gols</div>
                     </div>
                     <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
                       Vender (R$ {(p.value / 1000000).toFixed(1)}M)
