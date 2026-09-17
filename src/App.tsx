@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 const APP_CONFIG = {
-  appName: "Brasfoot NextGen Ultra Pro",
-  version: "5.0.0-ENTERPRISE",
+  appName: "Top Club Director",
+  version: "6.0.0-PRO",
   currencySymbol: "R$",
 };
 
@@ -30,16 +30,6 @@ interface Player {
   yellowCards: number;
   suspended: boolean;
   age: number;
-  isYouthPromoted?: boolean;
-}
-
-interface YouthPlayer {
-  id: number;
-  name: string;
-  pos: 'GOL' | 'DEF' | 'MEI' | 'ATA';
-  potential: number;
-  overall: number;
-  age: number;
 }
 
 interface HistoryEntry {
@@ -54,26 +44,16 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion' | 'dev_panel'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'tactics' | 'youth' | 'market' | 'stadium' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'tactics' | 'market' | 'stadium' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
-  const [tacticsStyle, setTacticsStyle] = useState<string>('Equilibrado');
   const [tacticsFormation, setTacticsFormation] = useState<string>('4-3-3');
-  const [penaltyTaker, setPenaltyTaker] = useState<string>('Pedro');
   const [round, setRound] = useState<number>(1);
   const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
-  const [managerReputation, setManagerReputation] = useState<number>(50);
   const [sponsorBonus, setSponsorBonus] = useState<number>(2500000);
-  const [news, setNews] = useState<string[]>(['🚀 Versão Ultra Pro Ativada: Academia de Base, Torneios Internacionais e Táticas em tempo real disponíveis!']);
+  const [news, setNews] = useState<string[]>(['🚀 Rebranding Oficial: Bem-vindo ao Top Club Director!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
-  const [youthAcademy, setYouthAcademy] = useState<YouthPlayer[]>([
-    { id: 201, name: 'Mateus Lima', pos: 'ATA', overall: 68, potential: 88, age: 16 },
-    { id: 202, name: 'Gabriel Santos', pos: 'MEI', overall: 66, potential: 85, age: 17 },
-    { id: 203, name: 'Lucas Silva', pos: 'DEF', overall: 65, potential: 83, age: 16 },
-  ]);
-
-  const [cupPhase, setCupPhase] = useState<'Semifinal' | 'Final' | 'Encerrada'>('Semifinal');
   const [cupWinner, setCupWinner] = useState<string>('Em andamento');
 
   const [teams, setTeams] = useState<Team[]>([
@@ -100,24 +80,20 @@ export default function App() {
   const [market, setMarket] = useState<Player[]>([
     { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, morale: 95, value: 30000000, salary: 500000, contractYears: 3, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 18 },
     { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, morale: 90, value: 12000000, salary: 350000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 31 },
-    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, morale: 88, value: 11000000, salary: 300000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, morale: 85, value: 4000000, salary: 150000, contractYears: 1, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 36 },
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_ultra_pro');
+    const savedData = localStorage.getItem('top_club_director_save');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
         setMyTeam(parsed.myTeam || '');
         setMoney(parsed.money || 50000000);
-        setManagerReputation(parsed.managerReputation || 50);
         setRound(parsed.round || 1);
         setSeasonCount(parsed.seasonCount || 1);
         if (parsed.teams) setTeams(parsed.teams);
         if (parsed.squad) setSquad(parsed.squad);
         if (parsed.history) setHistory(parsed.history);
-        if (parsed.youthAcademy) setYouthAcademy(parsed.youthAcademy);
         if (parsed.myTeam) setScreen('dashboard');
       } catch (e) {
         console.error("Erro ao carregar save", e);
@@ -126,44 +102,8 @@ export default function App() {
   }, []);
 
   const saveGame = () => {
-    const dataToSave = { myTeam, money, managerReputation, round, seasonCount, teams, squad, history, youthAcademy };
-    localStorage.setItem('brasfoot_save_ultra_pro', JSON.stringify(dataToSave));
-  };
-
-  const promoteYouth = (youth: YouthPlayer) => {
-    const newPlayer: Player = {
-      id: Date.now(),
-      name: youth.name,
-      pos: youth.pos,
-      overall: youth.overall,
-      energy: 100,
-      morale: 95,
-      value: 4000000,
-      salary: 80000,
-      contractYears: 4,
-      goals: 0,
-      injured: false,
-      yellowCards: 0,
-      suspended: false,
-      age: youth.age,
-      isYouthPromoted: true
-    };
-    setSquad([...squad, newPlayer]);
-    setYouthAcademy(youthAcademy.filter(y => y.id !== youth.id));
-    setNews([`🌟 CATEGORIA DE BASE: ${youth.name} foi promovido ao time profissional!`, ...news]);
-    saveGame();
-  };
-
-  const renewContract = (player: Player) => {
-    const cost = player.salary * 10;
-    if (money < cost) {
-      alert('Saldo insuficiente para assinar renovação!');
-      return;
-    }
-    setMoney(money - cost);
-    setSquad(squad.map(p => p.id === player.id ? { ...p, contractYears: p.contractYears + 2, morale: Math.min(100, p.morale + 15) } : p));
-    setNews([`📝 RENOVAÇÃO: ${player.name} renovou contrato por mais 2 anos!`, ...news]);
-    saveGame();
+    const dataToSave = { myTeam, money, round, seasonCount, teams, squad, history };
+    localStorage.setItem('top_club_director_save', JSON.stringify(dataToSave));
   };
 
   const calculatePayroll = () => squad.reduce((total, p) => total + p.salary, 0);
@@ -175,11 +115,7 @@ export default function App() {
       const userPoints = teams[userIndex]?.points || 0;
       const userRank = userIndex + 1;
 
-      let reward = 5000000;
-      if (userRank === 1) reward = 30000000;
-      else if (userRank === 2) reward = 20000000;
-      else reward = 12000000;
-
+      let reward = userRank === 1 ? 30000000 : 12000000;
       const bestPlayer = [...squad].sort((a, b) => b.goals - a.goals)[0]?.name || 'Pedro';
 
       setMoney(prev => prev + reward);
@@ -218,20 +154,20 @@ export default function App() {
   return (
     <div style={{ padding: '16px', color: '#fff', minHeight: '100vh', background: '#0f172a', fontFamily: 'sans-serif' }}>
       <header style={{ textAlign: 'center', marginBottom: '16px' }}>
-        <h1 style={{ fontSize: '20px', margin: 0 }}>⚽ {APP_CONFIG.appName}</h1>
-        <span style={{ background: '#334155', color: '#38bdf8', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold' }}>
-          BUILD {APP_CONFIG.version}
+        <h1 style={{ fontSize: '22px', margin: 0, letterSpacing: '1px' }}>⚽ {APP_CONFIG.appName}</h1>
+        <span style={{ background: '#22c55e', color: '#000', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold' }}>
+          {APP_CONFIG.version}
         </span>
       </header>
 
       {screen === 'menu' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-          <h2>Carreira Treinador Pro</h2>
+          <h2>Gestão de Futebol de Alto Nível</h2>
           <p style={{ color: '#cbd5e1', marginBottom: '20px', fontSize: '13px' }}>
-            A plataforma definitiva de simulação futebolística no mobile.
+            Comande todos os departamentos do seu clube rumo à glória.
           </p>
           <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px' }}>
-            Iniciar Nova Carreira
+            Iniciar Carreira Executiva
           </button>
         </div>
       )}
@@ -269,7 +205,7 @@ export default function App() {
                 <strong style={{ fontSize: '18px' }}>{myTeam}</strong>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold', display: 'block' }}>SALDO</span>
+                <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold', display: 'block' }}>ORÇAMENTO</span>
                 <strong style={{ color: '#4ade80', fontSize: '16px' }}>{APP_CONFIG.currencySymbol} {(money / 1000000).toFixed(1)}M</strong>
               </div>
             </div>
@@ -278,7 +214,6 @@ export default function App() {
           <div style={{ display: 'flex', gap: '4px', overflowX: 'auto' }}>
             <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tabela</button>
             <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
-            <button onClick={() => setTab('youth')} style={{ flex: 1, background: tab === 'youth' ? '#eab308' : '#334155', color: tab === 'youth' ? '#000' : '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Base 🌱</button>
             <button onClick={() => setTab('tactics')} style={{ flex: 1, background: tab === 'tactics' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tática 📋</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
@@ -314,22 +249,16 @@ export default function App() {
             </>
           )}
 
-          {tab === 'youth' && (
+          {tab === 'squad' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Academia de Jovens Talentos (Sub-20)</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '12px', marginBottom: '12px' }}>
-                Promova promessas da base diretamente para a equipe profissional.
-              </p>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Elenco Principal</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {youthAcademy.map((y) => (
-                  <div key={y.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
+                {squad.map((p) => (
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
-                      <strong>{y.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({y.pos}, {y.age} anos)</span>
-                      <div style={{ color: '#eab308', fontSize: '12px' }}>OVR Atual: {y.overall} | Potencial: ⭐ {y.potential}</div>
+                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
+                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | ⚡ {p.energy}%</div>
                     </div>
-                    <button onClick={() => promoteYouth(y)} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
-                      Promover
-                    </button>
                   </div>
                 ))}
               </div>
@@ -338,37 +267,12 @@ export default function App() {
 
           {tab === 'tactics' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Quadro Tático Profissional</h3>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '12px', color: '#cbd5e1', display: 'block', marginBottom: '4px' }}>Formação Tática:</label>
-                <select value={tacticsFormation} onChange={e => setTacticsFormation(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
-                  <option value="4-3-3">4-3-3 (Ofensivo)</option>
-                  <option value="4-4-2">4-4-2 (Equilibrado)</option>
-                  <option value="3-5-2">3-5-2 (Pressão Total)</option>
-                  <option value="5-4-1">5-4-1 (Contra-Ataque)</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {tab === 'squad' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Elenco & Contratos</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {squad.map((p) => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
-                    <div>
-                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
-                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | Contrato: <strong style={{ color: p.contractYears === 1 ? '#ef4444' : '#4ade80' }}>{p.contractYears} anos</strong></div>
-                    </div>
-                    {p.contractYears <= 1 && (
-                      <button onClick={() => renewContract(p)} style={{ background: '#eab308', color: '#000', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>
-                        Renovar
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Quadro Tático</h3>
+              <select value={tacticsFormation} onChange={e => setTacticsFormation(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
+                <option value="4-3-3">4-3-3 (Ofensivo)</option>
+                <option value="4-4-2">4-4-2 (Equilibrado)</option>
+                <option value="3-5-2">3-5-2 (Pressão)</option>
+              </select>
             </div>
           )}
 
@@ -389,7 +293,7 @@ export default function App() {
 
           {tab === 'news' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Feed de Notícias</h3>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Notícias</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {news.map((item, i) => (
                   <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px', color: '#cbd5e1' }}>{item}</div>
