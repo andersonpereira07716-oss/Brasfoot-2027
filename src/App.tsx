@@ -4,6 +4,7 @@ interface Team {
   name: string;
   points: number;
   played: number;
+  stadiumCapacity: number;
 }
 
 interface Player {
@@ -29,40 +30,50 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'news' | 'topscorers' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'topscorers' | 'stadium' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
   const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
   const [logs, setLogs] = useState<string[]>([]);
-  const [news, setNews] = useState<string[]>(['Bem-vindo à nova temporada do Brasfoot NextGen!']);
+  const [news, setNews] = useState<string[]>(['🚀 Bem-vindo ao Brasfoot NextGen Pro! Monte seu esquadrão e busque a glória!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [lastReward, setLastReward] = useState<number>(0);
+  const [marketFilter, setMarketFilter] = useState<string>('ALL');
 
   const [teams, setTeams] = useState<Team[]>([
-    { name: 'Flamengo', points: 0, played: 0 },
-    { name: 'Palmeiras', points: 0, played: 0 },
-    { name: 'São Paulo', points: 0, played: 0 },
-    { name: 'Corinthians', points: 0, played: 0 }
+    { name: 'Flamengo', points: 0, played: 0, stadiumCapacity: 50000 },
+    { name: 'Palmeiras', points: 0, played: 0, stadiumCapacity: 45000 },
+    { name: 'São Paulo', points: 0, played: 0, stadiumCapacity: 48000 },
+    { name: 'Corinthians', points: 0, played: 0, stadiumCapacity: 47000 }
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
-    { id: 1, name: 'Weverton', pos: 'GOL', overall: 82, energy: 100, value: 5000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 2, name: 'Gomez', pos: 'DEF', overall: 84, energy: 95, value: 12000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 3, name: 'Murilo', pos: 'DEF', overall: 80, energy: 92, value: 8000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 4, name: 'Veiga', pos: 'MEI', overall: 85, energy: 88, value: 15000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 5, name: 'Estêvão', pos: 'ATA', overall: 83, energy: 90, value: 20000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 1, name: 'Rossi', pos: 'GOL', overall: 81, energy: 100, value: 6000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 2, name: 'Léo Ortiz', pos: 'DEF', overall: 82, energy: 98, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 3, name: 'Léo Pereira', pos: 'DEF', overall: 80, energy: 95, value: 9000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 4, name: 'Ayrton Lucas', pos: 'DEF', overall: 79, energy: 92, value: 8000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 5, name: 'Varela', pos: 'DEF', overall: 77, energy: 94, value: 5000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 6, name: 'Pulgar', pos: 'MEI', overall: 81, energy: 90, value: 10000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 7, name: 'De La Cruz', pos: 'MEI', overall: 85, energy: 88, value: 18000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 8, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 86, value: 22000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 9, name: 'Gerson', pos: 'MEI', overall: 84, energy: 89, value: 16000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 10, name: 'Pedro', pos: 'ATA', overall: 85, energy: 91, value: 25000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 11, name: 'Everton Ceballos', pos: 'ATA', overall: 82, energy: 90, value: 14000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 12, name: 'Bruno Henrique', pos: 'ATA', overall: 81, energy: 85, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
   ]);
 
   const [market, setMarket] = useState<Player[]>([
-    { id: 101, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 100, value: 18000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 102, name: 'Calleri', pos: 'ATA', overall: 81, energy: 100, value: 10000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 103, name: 'Yuri Alberto', pos: 'ATA', overall: 79, energy: 100, value: 7000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, value: 30000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, value: 12000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, value: 4000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 105, name: 'Gustavo Gómez', pos: 'DEF', overall: 84, energy: 100, value: 13000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save');
+    const savedData = localStorage.getItem('brasfoot_save_v2');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -82,7 +93,7 @@ export default function App() {
 
   const saveGame = () => {
     const dataToSave = { myTeam, money, round, seasonCount, teams, squad, history };
-    localStorage.setItem('brasfoot_save', JSON.stringify(dataToSave));
+    localStorage.setItem('brasfoot_save_v2', JSON.stringify(dataToSave));
   };
 
   const simulateRound = () => {
@@ -93,9 +104,9 @@ export default function App() {
       const userRank = userIndex + 1;
 
       let reward = 5000000;
-      if (userRank === 1) reward = 20000000;
-      else if (userRank === 2) reward = 12000000;
-      else if (userRank === 3) reward = 8000000;
+      if (userRank === 1) reward = 25000000;
+      else if (userRank === 2) reward = 15000000;
+      else if (userRank === 3) reward = 10000000;
 
       setLastReward(reward);
       setMoney(prev => prev + reward);
@@ -104,7 +115,7 @@ export default function App() {
       setHistory(newHistory);
       setScreen('champion');
 
-      localStorage.setItem('brasfoot_save', JSON.stringify({
+      localStorage.setItem('brasfoot_save_v2', JSON.stringify({
         myTeam, money: money + reward, round, seasonCount, teams, squad, history: newHistory
       }));
       return;
@@ -145,7 +156,7 @@ export default function App() {
 
       if (isInjured) {
         isInjured = false;
-        newNews.unshift(`🏥 DEPARTAMENTO MÉDICO: ${p.name} se recuperou de lesão!`);
+        newNews.unshift(`🏥 MÉDICO: ${p.name} se recuperou totalmente de lesão!`);
       }
       if (isSuspended) {
         isSuspended = false;
@@ -153,21 +164,21 @@ export default function App() {
       }
 
       if (!isInjured && !isSuspended) {
-        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.4) {
+        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.35) {
           newGoals += 1;
         }
 
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.2) {
           cards += 1;
           if (cards >= 2) {
             isSuspended = true;
-            newNews.unshift(`🟨 SUSPENSÃO: ${p.name} recebeu o 2º cartão amarelo e desfalca o time na próxima rodada!`);
+            newNews.unshift(`🟨 CARTÃO: ${p.name} levou 2º amarelo e está suspenso.`);
           }
         }
 
-        if (Math.random() < 0.1) {
+        if (Math.random() < 0.08) {
           isInjured = true;
-          newNews.unshift(`🚑 LESÃO: ${p.name} sentiu dores e foi parar no departamento médico!`);
+          newNews.unshift(`🚑 LESÃO: ${p.name} sofreu distensão muscular.`);
         }
       }
 
@@ -181,9 +192,12 @@ export default function App() {
       };
     });
 
+    const userTeamData = teams.find(t => t.name === myTeam);
+    const gateIncome = (userTeamData?.stadiumCapacity || 40000) * 50;
+
     setSquad(updatedSquad);
     setNews(newNews);
-    setMoney(prev => prev + 1500000);
+    setMoney(prev => prev + gateIncome);
 
     setLogs([
       `Rodada ${round}: ${match1A.name} ${score1A} x ${score1B} ${match1B.name}`,
@@ -195,18 +209,30 @@ export default function App() {
   };
 
   const trainSquad = () => {
-    if (money < 1000000) {
-      alert('Você precisa de R$ 1.0M para realizar um treino intensivo!');
+    if (money < 1500000) {
+      alert('Você precisa de R$ 1.5M para o treino intensivo!');
       return;
     }
-    setMoney(money - 1000000);
+    setMoney(money - 1500000);
     const recoveredSquad = squad.map(p => ({
       ...p,
-      energy: Math.min(100, p.energy + 25),
-      overall: Math.random() > 0.6 ? p.overall + 1 : p.overall
+      energy: Math.min(100, p.energy + 30),
+      overall: Math.random() > 0.5 ? p.overall + 1 : p.overall
     }));
     setSquad(recoveredSquad);
-    setNews([`🏋️ TREINO: O elenco treinou pesado! Energia recuperada e evolução física obtida.`, ...news]);
+    setNews([`🏋️ TREINAMENTO: O elenco evoluiu o preparo físico e o entrosamento!`, ...news]);
+    saveGame();
+  };
+
+  const upgradeStadium = () => {
+    const cost = 10000000;
+    if (money < cost) {
+      alert('Você precisa de R$ 10.0M para ampliar o estádio!');
+      return;
+    }
+    setMoney(money - cost);
+    setTeams(teams.map(t => t.name === myTeam ? { ...t, stadiumCapacity: t.stadiumCapacity + 10000 } : t));
+    setNews([`🏟️ OBRAS: O estádio do ${myTeam} foi ampliado em +10.000 lugares!`, ...news]);
     saveGame();
   };
 
@@ -227,56 +253,58 @@ export default function App() {
     setMoney(money - player.value);
     setSquad([...squad, player]);
     setMarket(market.filter(p => p.id !== player.id));
-    setNews([`🤝 CONTRATAÇÃO: ${player.name} assinou com o ${myTeam}!`, ...news]);
+    setNews([`🤝 REFORÇO: ${player.name} fechou contrato com o ${myTeam}!`, ...news]);
     saveGame();
   };
 
   const sellPlayer = (player: Player) => {
-    if (squad.length <= 3) {
-      alert('Você precisa ter pelo menos 3 jogadores no elenco!');
+    if (squad.length <= 11) {
+      alert('Seu elenco precisa ter no mínimo 11 jogadores!');
       return;
     }
     setMoney(money + player.value);
     setSquad(squad.filter(p => p.id !== player.id));
     setMarket([...market, player]);
-    setNews([`💰 VENDA: ${player.name} foi vendido por R$ ${(player.value / 1000000).toFixed(1)}M.`, ...news]);
+    setNews([`💰 TRANSFERÊNCIA: ${player.name} foi negociado por R$ ${(player.value / 1000000).toFixed(1)}M.`, ...news]);
     saveGame();
   };
 
   const resetAllData = () => {
     if (confirm('Deseja apagar todo o progresso do jogo?')) {
-      localStorage.removeItem('brasfoot_save');
+      localStorage.removeItem('brasfoot_save_v2');
       window.location.reload();
     }
   };
 
   const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
+  const currentStadium = teams.find(t => t.name === myTeam)?.stadiumCapacity || 40000;
+  const filteredMarket = marketFilter === 'ALL' ? market : market.filter(p => p.pos === marketFilter);
   const sortedScorers = [...squad].sort((a, b) => b.goals - a.goals);
 
   return (
     <div style={{ padding: '16px', color: '#fff', minHeight: '100vh', background: '#0f172a', fontFamily: 'sans-serif' }}>
       <header style={{ textAlign: 'center', marginBottom: '16px' }}>
-        <h1 style={{ fontSize: '22px', margin: 0 }}>⚽ Brasfoot NextGen</h1>
-        <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Simulador de Gestão de Futebol</p>
+        <h1 style={{ fontSize: '22px', margin: 0 }}>⚽ Brasfoot NextGen Pro</h1>
+        <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Simulador Profissional de Gestão</p>
       </header>
 
       {screen === 'menu' && (
-        <div style={{ background: '#1e293b', padding: '20px', borderRadius: '12px', textAlign: 'center' }}>
+        <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
           <h2>Novo Jogo</h2>
-          <p style={{ color: '#cbd5e1', marginBottom: '20px' }}>Inicie sua carreira profissional de técnico.</p>
-          <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%' }}>
-            Escolher Clube
+          <p style={{ color: '#cbd5e1', marginBottom: '20px' }}>Assuma o comando técnico e financeiro do seu clube.</p>
+          <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '16px' }}>
+            Iniciar Carreira
           </button>
         </div>
       )}
 
       {screen === 'select' && (
         <div style={{ background: '#1e293b', padding: '20px', borderRadius: '12px' }}>
-          <h2 style={{ textAlign: 'center', marginTop: 0 }}>Selecione seu Time</h2>
+          <h2 style={{ textAlign: 'center', marginTop: 0 }}>Escolha seu Clube</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '20px 0' }}>
             {teams.map((t) => (
-              <button key={t.name} onClick={() => { setMyTeam(t.name); setScreen('dashboard'); saveGame(); }} style={{ background: '#334155', color: '#fff', border: '1px solid #475569', padding: '12px', borderRadius: '8px', fontWeight: 'bold', textAlign: 'left' }}>
-                {t.name}
+              <button key={t.name} onClick={() => { setMyTeam(t.name); setScreen('dashboard'); saveGame(); }} style={{ background: '#334155', color: '#fff', border: '1px solid #475569', padding: '14px', borderRadius: '8px', fontWeight: 'bold', textAlign: 'left', fontSize: '15px' }}>
+                ⚽ {t.name} (Capacidade: {t.stadiumCapacity.toLocaleString()} pessoas)
               </button>
             ))}
           </div>
@@ -286,16 +314,16 @@ export default function App() {
       {screen === 'champion' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
           <h1 style={{ fontSize: '26px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
-          <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão: {teams[0].name}</p>
+          <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '20px' }}>Campeão: {teams[0].name}</p>
           
           <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '12px 0 4px 0' }}>
             Seu time encerrou com {userPoints} {userPoints === 1 ? 'ponto' : 'pontos'}.
           </p>
-          <p style={{ color: '#eab308', fontWeight: 'bold', fontSize: '14px', marginBottom: '20px' }}>
-            💵 Bônus da Temporada: +R$ {(lastReward / 1000000).toFixed(1)}M
+          <p style={{ color: '#eab308', fontWeight: 'bold', fontSize: '15px', marginBottom: '20px' }}>
+            💵 Premiação Oficial: +R$ {(lastReward / 1000000).toFixed(1)}M
           </p>
 
-          <button onClick={resetForNextSeason} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%' }}>
+          <button onClick={resetForNextSeason} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '14px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px' }}>
             Iniciar Temporada {seasonCount + 1}
           </button>
         </div>
@@ -325,6 +353,7 @@ export default function App() {
             <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
             <button onClick={() => setTab('topscorers')} style={{ flex: 1, background: tab === 'topscorers' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Artilharia</button>
+            <button onClick={() => setTab('stadium')} style={{ flex: 1, background: tab === 'stadium' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Estádio</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
             <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Galeria</button>
           </div>
@@ -364,7 +393,7 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <h3 style={{ margin: 0, fontSize: '16px' }}>Elenco ({squad.length})</h3>
                 <button onClick={trainSquad} style={{ background: '#eab308', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
-                  🏋️ Treinar (R$ 1.0M)
+                  🏋️ Treinar (R$ 1.5M)
                 </button>
               </div>
 
@@ -388,7 +417,7 @@ export default function App() {
                         {p.suspended && <span style={{ background: '#eab308', color: '#000', fontSize: '10px', padding: '1px 4px', borderRadius: '4px' }}>🟨 SUSPENSO</span>}
                       </div>
                       <div style={{ color: p.energy < 50 ? '#ef4444' : '#60a5fa', fontSize: '12px', marginTop: '2px' }}>
-                        OVR: {p.overall} | ⚡ {p.energy}% | ⚽ {p.goals} Gols | 🟨 {p.yellowCards}
+                        OVR: {p.overall} | ⚡ {p.energy}% | ⚽ {p.goals} Gols
                       </div>
                     </div>
                     <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
@@ -402,9 +431,18 @@ export default function App() {
 
           {tab === 'market' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Mercado de Transferências</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Mercado</h3>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {['ALL', 'GOL', 'DEF', 'MEI', 'ATA'].map(pos => (
+                    <button key={pos} onClick={() => setMarketFilter(pos)} style={{ background: marketFilter === pos ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {market.map((p) => (
+                {filteredMarket.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
                       <strong>{p.name}</strong> ({p.pos}) - OVR: {p.overall}
@@ -417,9 +455,24 @@ export default function App() {
             </div>
           )}
 
+          {tab === 'stadium' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Gestão de Estádio</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '13px' }}>
+                Capacidade Atual: <strong>{currentStadium.toLocaleString()} lugares</strong>
+              </p>
+              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '16px' }}>
+                Renda Estimada por Jogo: R$ {((currentStadium * 50) / 1000000).toFixed(2)}M
+              </p>
+              <button onClick={upgradeStadium} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '14px' }}>
+                Expandir +10.000 Lugares (R$ 10.0M)
+              </button>
+            </div>
+          )}
+
           {tab === 'topscorers' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Artilharia da Equipe</h3>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Artilharia do Elenco</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {sortedScorers.map((p, idx) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
@@ -461,7 +514,7 @@ export default function App() {
                 </div>
               )}
               <button onClick={resetAllData} style={{ marginTop: '20px', background: '#dc2626', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold', width: '100%', fontSize: '12px' }}>
-                Resetar Todo o Jogo
+                Resetar Progresso
               </button>
             </div>
           )}
