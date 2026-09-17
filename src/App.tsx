@@ -14,6 +14,7 @@ interface Player {
   pos: 'GOL' | 'DEF' | 'MEI' | 'ATA';
   overall: number;
   energy: number;
+  morale: number;
   value: number;
   salary: number;
   goals: number;
@@ -30,11 +31,12 @@ interface HistoryEntry {
   userPoints: number;
   userRank: number;
   cupWinner: string;
+  mvp: string;
 }
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'finance' | 'topscorers' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'scout' | 'topscorers' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
@@ -42,7 +44,7 @@ export default function App() {
   const [money, setMoney] = useState<number>(50000000);
   const [loan, setLoan] = useState<number>(0);
   const [sponsorBonus, setSponsorBonus] = useState<number>(2000000);
-  const [news, setNews] = useState<string[]>(['🚀 Brasfoot NextGen Pro: Bem-vindo à nova temporada profissional!']);
+  const [news, setNews] = useState<string[]>(['🚀 Brasfoot NextGen Pro: Olheiros, Moral e Sistema de Saves integrados!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [lastReward, setLastReward] = useState<number>(0);
   const [marketFilter, setMarketFilter] = useState<string>('ALL');
@@ -58,28 +60,28 @@ export default function App() {
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
-    { id: 1, name: 'Rossi', pos: 'GOL', overall: 81, energy: 100, value: 6000000, salary: 200000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
-    { id: 2, name: 'Léo Ortiz', pos: 'DEF', overall: 82, energy: 98, value: 11000000, salary: 300000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
-    { id: 3, name: 'Léo Pereira', pos: 'DEF', overall: 80, energy: 95, value: 9000000, salary: 250000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
-    { id: 4, name: 'Ayrton Lucas', pos: 'DEF', overall: 79, energy: 92, value: 8000000, salary: 220000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 5, name: 'Pulgar', pos: 'MEI', overall: 81, energy: 90, value: 10000000, salary: 280000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
-    { id: 6, name: 'De La Cruz', pos: 'MEI', overall: 85, energy: 88, value: 18000000, salary: 500000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 7, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 86, value: 22000000, salary: 600000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
-    { id: 8, name: 'Gerson', pos: 'MEI', overall: 84, energy: 89, value: 16000000, salary: 450000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
-    { id: 9, name: 'Pedro', pos: 'ATA', overall: 85, energy: 91, value: 25000000, salary: 650000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 10, name: 'Everton Ceballos', pos: 'ATA', overall: 82, energy: 90, value: 14000000, salary: 350000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
-    { id: 11, name: 'Bruno Henrique', pos: 'ATA', overall: 81, energy: 85, value: 11000000, salary: 320000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 33 },
+    { id: 1, name: 'Rossi', pos: 'GOL', overall: 81, energy: 100, morale: 90, value: 6000000, salary: 200000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
+    { id: 2, name: 'Léo Ortiz', pos: 'DEF', overall: 82, energy: 98, morale: 88, value: 11000000, salary: 300000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 3, name: 'Léo Pereira', pos: 'DEF', overall: 80, energy: 95, morale: 85, value: 9000000, salary: 250000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
+    { id: 4, name: 'Ayrton Lucas', pos: 'DEF', overall: 79, energy: 92, morale: 87, value: 8000000, salary: 220000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 5, name: 'Pulgar', pos: 'MEI', overall: 81, energy: 90, morale: 89, value: 10000000, salary: 280000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
+    { id: 6, name: 'De La Cruz', pos: 'MEI', overall: 85, energy: 88, morale: 92, value: 18000000, salary: 500000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 7, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 86, morale: 95, value: 22000000, salary: 600000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
+    { id: 8, name: 'Gerson', pos: 'MEI', overall: 84, energy: 89, morale: 90, value: 16000000, salary: 450000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 9, name: 'Pedro', pos: 'ATA', overall: 85, energy: 91, morale: 94, value: 25000000, salary: 650000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 10, name: 'Everton Ceballos', pos: 'ATA', overall: 82, energy: 90, morale: 86, value: 14000000, salary: 350000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 11, name: 'Bruno Henrique', pos: 'ATA', overall: 81, energy: 85, morale: 88, value: 11000000, salary: 320000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 33 },
   ]);
 
   const [market, setMarket] = useState<Player[]>([
-    { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, value: 30000000, salary: 500000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 18 },
-    { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, value: 12000000, salary: 350000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 31 },
-    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, value: 11000000, salary: 300000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, value: 4000000, salary: 150000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 36 },
+    { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, morale: 95, value: 30000000, salary: 500000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 18 },
+    { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, morale: 90, value: 12000000, salary: 350000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 31 },
+    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, morale: 88, value: 11000000, salary: 300000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, morale: 85, value: 4000000, salary: 150000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 36 },
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_ultra_v2');
+    const savedData = localStorage.getItem('brasfoot_save_pro_ultra');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -100,7 +102,7 @@ export default function App() {
 
   const saveGame = () => {
     const dataToSave = { myTeam, money, loan, round, seasonCount, teams, squad, history };
-    localStorage.setItem('brasfoot_save_ultra_v2', JSON.stringify(dataToSave));
+    localStorage.setItem('brasfoot_save_pro_ultra', JSON.stringify(dataToSave));
   };
 
   const calculatePayroll = () => squad.reduce((total, p) => total + p.salary, 0);
@@ -117,6 +119,33 @@ export default function App() {
     saveGame();
   };
 
+  const scoutNewTalent = () => {
+    const cost = 5000000;
+    if (money < cost) {
+      alert('Você precisa de R$ 5.0M para enviar a equipe de olheiros!');
+      return;
+    }
+    setMoney(money - cost);
+    const newPlayer: Player = {
+      id: Date.now(),
+      name: `Joia ${Math.floor(Math.random() * 900 + 100)}`,
+      pos: ['GOL', 'DEF', 'MEI', 'ATA'][Math.floor(Math.random() * 4)] as 'GOL' | 'DEF' | 'MEI' | 'ATA',
+      overall: Math.floor(Math.random() * 8 + 78),
+      energy: 100,
+      morale: 90,
+      value: Math.floor(Math.random() * 8000000 + 5000000),
+      salary: 180000,
+      goals: 0,
+      injured: false,
+      yellowCards: 0,
+      suspended: false,
+      age: 18
+    };
+    setMarket([newPlayer, ...market]);
+    setNews([`🔍 OLHEIRO: Novo talento (${newPlayer.name}, OVR ${newPlayer.overall}) encontrado!`, ...news]);
+    saveGame();
+  };
+
   const simulateRound = () => {
     if (round >= 6) {
       const winner = teams[0].name;
@@ -129,14 +158,16 @@ export default function App() {
       else if (userRank === 2) reward = 20000000;
       else if (userRank === 3) reward = 12000000;
 
+      const bestPlayer = [...squad].sort((a, b) => b.goals - a.goals)[0]?.name || 'Pedro';
+
       setLastReward(reward);
       setMoney(prev => prev + reward);
 
-      const newHistory = [{ season: seasonCount, winner, userTeam: myTeam, userPoints, userRank, cupWinner }, ...history];
+      const newHistory = [{ season: seasonCount, winner, userTeam: myTeam, userPoints, userRank, cupWinner, mvp: bestPlayer }, ...history];
       setHistory(newHistory);
       setScreen('champion');
 
-      localStorage.setItem('brasfoot_save_ultra_v2', JSON.stringify({
+      localStorage.setItem('brasfoot_save_pro_ultra', JSON.stringify({
         myTeam, money: money + reward, loan, round, seasonCount, teams, squad, history: newHistory
       }));
       return;
@@ -169,7 +200,6 @@ export default function App() {
 
     let newNews = [...news];
 
-    // Entrada de Bilheteria + Patrocínio - Folha Salarial
     const userTeamData = teams.find(t => t.name === myTeam);
     const gateIncome = (userTeamData?.stadiumCapacity || 40000) * 60;
     const netFinance = gateIncome + sponsorBonus - calculatePayroll();
@@ -181,12 +211,16 @@ export default function App() {
       let isInjured = p.injured;
       let isSuspended = p.suspended;
       let cards = p.yellowCards;
+      let newMorale = p.morale;
 
       if (isInjured) isInjured = false;
       if (isSuspended) { isSuspended = false; cards = 0; }
 
       if (!isInjured && !isSuspended) {
-        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.35) newGoals += 1;
+        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.35) {
+          newGoals += 1;
+          newMorale = Math.min(100, newMorale + 5);
+        }
         if (Math.random() < 0.2) {
           cards += 1;
           if (cards >= 2) {
@@ -206,6 +240,7 @@ export default function App() {
         injured: isInjured, 
         suspended: isSuspended, 
         yellowCards: cards,
+        morale: newMorale,
         energy: isInjured ? 50 : Math.max(30, p.energy - Math.floor(Math.random() * 8 + 4)) 
       };
     });
@@ -252,9 +287,10 @@ export default function App() {
     setSquad(squad.map(p => ({
       ...p,
       energy: Math.min(100, p.energy + 30),
+      morale: Math.min(100, p.morale + 10),
       overall: Math.random() > 0.5 ? p.overall + 1 : p.overall
     })));
-    setNews([`🏋️ TREINO: Elenco fisicamente recuperado e com evolução tática!`, ...news]);
+    setNews([`🏋️ TREINO: Elenco fisicamente recuperado e com moral elevado!`, ...news]);
     saveGame();
   };
 
@@ -288,14 +324,14 @@ export default function App() {
     setCupPhase('Semifinal');
     setCupWinner('Em andamento');
     setTeams(teams.map(t => ({ ...t, points: 0, played: 0 })));
-    setSquad(squad.map(p => ({ ...p, energy: 100, goals: 0, injured: false, suspended: false, yellowCards: 0 })));
+    setSquad(squad.map(p => ({ ...p, energy: 100, morale: 90, goals: 0, injured: false, suspended: false, yellowCards: 0 })));
     setScreen('dashboard');
     saveGame();
   };
 
   const resetAllData = () => {
     if (confirm('Deseja apagar todo o progresso do jogo?')) {
-      localStorage.removeItem('brasfoot_save_ultra_v2');
+      localStorage.removeItem('brasfoot_save_pro_ultra');
       window.location.reload();
     }
   };
@@ -374,6 +410,7 @@ export default function App() {
             <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tabela</button>
             <button onClick={() => setTab('cup')} style={{ flex: 1, background: tab === 'cup' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Copa 🏆</button>
             <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
+            <button onClick={() => setTab('scout')} style={{ flex: 1, background: tab === 'scout' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Olheiro 🔍</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
             <button onClick={() => setTab('stadium')} style={{ flex: 1, background: tab === 'stadium' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Estádio</button>
             <button onClick={() => setTab('topscorers')} style={{ flex: 1, background: tab === 'topscorers' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Artilharia</button>
@@ -409,6 +446,18 @@ export default function App() {
                 </table>
               </div>
             </>
+          )}
+
+          {tab === 'scout' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Equipe de Olheiros</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '13px' }}>
+                Envie olheiros para procurar novos talentos ocultos no mercado internacional.
+              </p>
+              <button onClick={scoutNewTalent} style={{ background: '#eab308', color: '#000', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', width: '100%', marginTop: '10px' }}>
+                Buscar Novo Talento (R$ 5.0M)
+              </button>
+            </div>
           )}
 
           {tab === 'cup' && (
@@ -460,7 +509,7 @@ export default function App() {
                         {p.injured && <span style={{ background: '#ef4444', color: '#fff', fontSize: '10px', padding: '1px 4px', borderRadius: '4px' }}>🏥 LESIONADO</span>}
                       </div>
                       <div style={{ color: '#60a5fa', fontSize: '12px', marginTop: '2px' }}>
-                        OVR: {p.overall} | ⚡ {p.energy}% | Salário: R$ {(p.salary / 1000).toFixed(0)}k
+                        OVR: {p.overall} | ⚡ {p.energy}% | 😄 {p.morale}%
                       </div>
                     </div>
                     <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
@@ -528,6 +577,7 @@ export default function App() {
                     <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                       <div style={{ fontWeight: 'bold', color: '#eab308' }}>🏆 Temp. {h.season}: Liga ({h.winner}) | Copa ({h.cupWinner})</div>
                       <div style={{ color: '#cbd5e1', fontSize: '12px' }}>Seu time ({h.userTeam}): {h.userRank}º Lugar ({h.userPoints} pts)</div>
+                      <div style={{ color: '#60a5fa', fontSize: '11px' }}>⭐ Craque do Ano: {h.mvp || 'N/A'}</div>
                     </div>
                   ))}
                 </div>
