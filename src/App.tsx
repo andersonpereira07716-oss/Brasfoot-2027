@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
-// === CONFIGURAÇÕES E TEMAS REBRANDABLE ===
 const APP_CONFIG = {
-  appName: "Brasfoot NextGen Developer Edition",
-  version: "3.2.0-PRO",
+  appName: "Brasfoot NextGen Enterprise",
+  version: "4.0.0-PRO",
   currencySymbol: "R$",
-  enableAdRewards: true,
-  defaultLanguage: "PT-BR"
 };
 
 interface Team {
@@ -27,6 +24,7 @@ interface Player {
   morale: number;
   value: number;
   salary: number;
+  contractYears: number;
   goals: number;
   injured: boolean;
   yellowCards: number;
@@ -46,15 +44,17 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion' | 'dev_panel'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'scout' | 'monetization' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'tactics' | 'market' | 'cup' | 'stadium' | 'scout' | 'analytics' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
-  const [tactics, setTactics] = useState<string>('4-3-3');
+  const [tacticsStyle, setTacticsStyle] = useState<string>('Equilibrado');
+  const [tacticsFormation, setTacticsFormation] = useState<string>('4-3-3');
+  const [penaltyTaker, setPenaltyTaker] = useState<string>('Pedro');
   const [round, setRound] = useState<number>(1);
   const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
   const [managerReputation, setManagerReputation] = useState<number>(50);
   const [sponsorBonus, setSponsorBonus] = useState<number>(2000000);
-  const [news, setNews] = useState<string[]>(['🚀 Template Dev Pro ativado: Arquitetura comercial pronta para publicação e monetização!']);
+  const [news, setNews] = useState<string[]>(['🚀 Versão Enterprise Ativada: Quadro tático avançado, gestão de contratos e analytics liberados!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const [cupPhase, setCupPhase] = useState<'Semifinal' | 'Final' | 'Encerrada'>('Semifinal');
@@ -68,28 +68,28 @@ export default function App() {
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
-    { id: 1, name: 'Rossi', pos: 'GOL', overall: 81, energy: 100, morale: 90, value: 6000000, salary: 200000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
-    { id: 2, name: 'Léo Ortiz', pos: 'DEF', overall: 82, energy: 98, morale: 88, value: 11000000, salary: 300000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
-    { id: 3, name: 'Léo Pereira', pos: 'DEF', overall: 80, energy: 95, morale: 85, value: 9000000, salary: 250000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
-    { id: 4, name: 'Ayrton Lucas', pos: 'DEF', overall: 79, energy: 92, morale: 87, value: 8000000, salary: 220000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 5, name: 'Pulgar', pos: 'MEI', overall: 81, energy: 90, morale: 89, value: 10000000, salary: 280000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
-    { id: 6, name: 'De La Cruz', pos: 'MEI', overall: 85, energy: 88, morale: 92, value: 18000000, salary: 500000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 7, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 86, morale: 95, value: 22000000, salary: 600000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
-    { id: 8, name: 'Gerson', pos: 'MEI', overall: 84, energy: 89, morale: 90, value: 16000000, salary: 450000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
-    { id: 9, name: 'Pedro', pos: 'ATA', overall: 85, energy: 91, morale: 94, value: 25000000, salary: 650000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 10, name: 'Everton Ceballos', pos: 'ATA', overall: 82, energy: 90, morale: 86, value: 14000000, salary: 350000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
-    { id: 11, name: 'Bruno Henrique', pos: 'ATA', overall: 81, energy: 85, morale: 88, value: 11000000, salary: 320000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 33 },
+    { id: 1, name: 'Rossi', pos: 'GOL', overall: 81, energy: 100, morale: 90, value: 6000000, salary: 200000, contractYears: 3, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
+    { id: 2, name: 'Léo Ortiz', pos: 'DEF', overall: 82, energy: 98, morale: 88, value: 11000000, salary: 300000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 3, name: 'Léo Pereira', pos: 'DEF', overall: 80, energy: 95, morale: 85, value: 9000000, salary: 250000, contractYears: 1, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
+    { id: 4, name: 'Ayrton Lucas', pos: 'DEF', overall: 79, energy: 92, morale: 87, value: 8000000, salary: 220000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 5, name: 'Pulgar', pos: 'MEI', overall: 81, energy: 90, morale: 89, value: 10000000, salary: 280000, contractYears: 3, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
+    { id: 6, name: 'De La Cruz', pos: 'MEI', overall: 85, energy: 88, morale: 92, value: 18000000, salary: 500000, contractYears: 4, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 7, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 86, morale: 95, value: 22000000, salary: 600000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
+    { id: 8, name: 'Gerson', pos: 'MEI', overall: 84, energy: 89, morale: 90, value: 16000000, salary: 450000, contractYears: 3, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 9, name: 'Pedro', pos: 'ATA', overall: 85, energy: 91, morale: 94, value: 25000000, salary: 650000, contractYears: 3, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 10, name: 'Everton Ceballos', pos: 'ATA', overall: 82, energy: 90, morale: 86, value: 14000000, salary: 350000, contractYears: 1, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 11, name: 'Bruno Henrique', pos: 'ATA', overall: 81, energy: 85, morale: 88, value: 11000000, salary: 320000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 33 },
   ]);
 
   const [market, setMarket] = useState<Player[]>([
-    { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, morale: 95, value: 30000000, salary: 500000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 18 },
-    { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, morale: 90, value: 12000000, salary: 350000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 31 },
-    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, morale: 88, value: 11000000, salary: 300000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
-    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, morale: 85, value: 4000000, salary: 150000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 36 },
+    { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, morale: 95, value: 30000000, salary: 500000, contractYears: 3, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 18 },
+    { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, morale: 90, value: 12000000, salary: 350000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 31 },
+    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, morale: 88, value: 11000000, salary: 300000, contractYears: 2, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, morale: 85, value: 4000000, salary: 150000, contractYears: 1, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 36 },
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_dev_pro');
+    const savedData = localStorage.getItem('brasfoot_save_enterprise');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -110,23 +110,18 @@ export default function App() {
 
   const saveGame = () => {
     const dataToSave = { myTeam, money, managerReputation, round, seasonCount, teams, squad, history };
-    localStorage.setItem('brasfoot_save_dev_pro', JSON.stringify(dataToSave));
+    localStorage.setItem('brasfoot_save_enterprise', JSON.stringify(dataToSave));
   };
 
-  const exportSaveJSON = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ myTeam, money, teams, squad, history }));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `brasfoot_save_s${seasonCount}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
-  const watchAdReward = () => {
-    alert("📺 [AdMob Mock] Vídeo de Anúncio Exibido com Sucesso!");
-    setMoney(money + 5000000);
-    setNews([`📺 MONETIZAÇÃO: Recompensa de anúncio recebida (+R$ 5.0M)!`, ...news]);
+  const renewContract = (player: Player) => {
+    const cost = player.salary * 10;
+    if (money < cost) {
+      alert('Saldo insuficiente para assinar renovação!');
+      return;
+    }
+    setMoney(money - cost);
+    setSquad(squad.map(p => p.id === player.id ? { ...p, contractYears: p.contractYears + 2, morale: Math.min(100, p.morale + 15) } : p));
+    setNews([`📝 RENOVAÇÃO: ${player.name} renovou contrato por mais 2 anos!`, ...news]);
     saveGame();
   };
 
@@ -190,34 +185,12 @@ export default function App() {
 
       {screen === 'menu' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-          <h2>Carreira Profissional</h2>
+          <h2>Modo Treinador Pro</h2>
           <p style={{ color: '#cbd5e1', marginBottom: '20px', fontSize: '13px' }}>
-            Template pronto para revenda, personalização e publicação na Google Play Store.
+            A versão definitiva para gerenciar táticas, contratos e estatísticas.
           </p>
-          <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px', marginBottom: '10px' }}>
-            Iniciar Novo Jogo
-          </button>
-          <button onClick={() => setScreen('dev_panel')} style={{ background: '#475569', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '13px' }}>
-            🛠️ Painel do Desenvolvedor (Config/Save)
-          </button>
-        </div>
-      )}
-
-      {screen === 'dev_panel' && (
-        <div style={{ background: '#1e293b', padding: '20px', borderRadius: '12px' }}>
-          <h3 style={{ marginTop: 0 }}>🛠️ Opções do Desenvolvedor</h3>
-          <p style={{ color: '#94a3b8', fontSize: '12px' }}>Ações prontas para testes de QA e integração de clientes:</p>
-          
-          <button onClick={exportSaveJSON} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', fontWeight: 'bold', width: '100%', marginBottom: '10px' }}>
-            💾 Exportar Arquivo de Save (.JSON)
-          </button>
-          
-          <button onClick={() => { localStorage.removeItem('brasfoot_save_dev_pro'); window.location.reload(); }} style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', fontWeight: 'bold', width: '100%', marginBottom: '10px' }}>
-            🔥 Limpar Cache do App (Reset)
-          </button>
-
-          <button onClick={() => setScreen('menu')} style={{ background: '#334155', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', width: '100%' }}>
-            Voltar ao Menu
+          <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px' }}>
+            Iniciar Carreira
           </button>
         </div>
       )}
@@ -263,8 +236,8 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '4px', overflowX: 'auto' }}>
             <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tabela</button>
-            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
-            <button onClick={() => setTab('monetization')} style={{ flex: 1, background: tab === 'monetization' ? '#eab308' : '#334155', color: tab === 'monetization' ? '#000' : '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>AdMob 📺</button>
+            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco/Contratos</button>
+            <button onClick={() => setTab('tactics')} style={{ flex: 1, background: tab === 'tactics' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tática 📋</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
           </div>
@@ -299,28 +272,53 @@ export default function App() {
             </>
           )}
 
-          {tab === 'monetization' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Módulo de Anúncios (AdMob Integration)</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '13px' }}>
-                Testador do componente de Vídeo Premiado. Permite que o jogador receba bônus em dinheiro assistindo a um vídeo.
-              </p>
-              <button onClick={watchAdReward} style={{ background: '#eab308', color: '#000', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '14px', marginTop: '10px' }}>
-                📺 Assistir Anúncio e Ganhar +R$ 5.0M
-              </button>
+          {tab === 'tactics' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Quadro Tático e Estilo</h3>
+              
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '12px', color: '#cbd5e1', display: 'block', marginBottom: '4px' }}>Formação Tática:</label>
+                <select value={tacticsFormation} onChange={e => setTacticsFormation(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
+                  <option value="4-3-3">4-3-3 (Ofensivo)</option>
+                  <option value="4-4-2">4-4-2 (Equilibrado)</option>
+                  <option value="3-5-2">3-5-2 (Dominante no Meio)</option>
+                  <option value="5-4-1">5-4-1 (Retranca)</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '12px', color: '#cbd5e1', display: 'block', marginBottom: '4px' }}>Estilo de Jogo:</label>
+                <select value={tacticsStyle} onChange={e => setTacticsStyle(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
+                  <option value="Equilibrado">Equilibrado</option>
+                  <option value="Pressão Alta">Pressão Alta (Maior desgaste)</option>
+                  <option value="Contra-Ataque">Contra-Ataque Rápido</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', color: '#cbd5e1', display: 'block', marginBottom: '4px' }}>Batedor Oficial de Pênaltis:</label>
+                <select value={penaltyTaker} onChange={e => setPenaltyTaker(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
+                  {squad.map(p => <option key={p.id} value={p.name}>{p.name} (OVR {p.overall})</option>)}
+                </select>
+              </div>
             </div>
           )}
 
           {tab === 'squad' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Elenco ({squad.length})</h3>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Gestão de Elenco e Contratos</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
                       <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
-                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | ⚡ {p.energy}%</div>
+                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | Contrato: <strong style={{ color: p.contractYears === 1 ? '#ef4444' : '#4ade80' }}>{p.contractYears} anos</strong></div>
                     </div>
+                    {p.contractYears <= 1 && (
+                      <button onClick={() => renewContract(p)} style={{ background: '#eab308', color: '#000', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>
+                        Renovar
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
