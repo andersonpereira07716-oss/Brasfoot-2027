@@ -1,22 +1,16 @@
 {
   "name": "brasfoot-nextgen",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-  "build": "tsc || mkdir -p www",
-  "test": "npx tsx testRun.ts"
-}
-
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "mkdir -p www",
+    "test": "npx tsx testRun.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {
-    "@types/node": "^22.20.2",
-    "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
   }
 }
