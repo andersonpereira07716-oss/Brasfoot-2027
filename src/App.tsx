@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 const APP_CONFIG = {
-  appName: "Brasfoot NextGen Enterprise",
-  version: "4.0.0-PRO",
+  appName: "Brasfoot NextGen Ultra Pro",
+  version: "5.0.0-ENTERPRISE",
   currencySymbol: "R$",
 };
 
@@ -30,6 +30,16 @@ interface Player {
   yellowCards: number;
   suspended: boolean;
   age: number;
+  isYouthPromoted?: boolean;
+}
+
+interface YouthPlayer {
+  id: number;
+  name: string;
+  pos: 'GOL' | 'DEF' | 'MEI' | 'ATA';
+  potential: number;
+  overall: number;
+  age: number;
 }
 
 interface HistoryEntry {
@@ -44,7 +54,7 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion' | 'dev_panel'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'tactics' | 'market' | 'cup' | 'stadium' | 'scout' | 'analytics' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'tactics' | 'youth' | 'market' | 'stadium' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tacticsStyle, setTacticsStyle] = useState<string>('Equilibrado');
   const [tacticsFormation, setTacticsFormation] = useState<string>('4-3-3');
@@ -53,9 +63,15 @@ export default function App() {
   const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
   const [managerReputation, setManagerReputation] = useState<number>(50);
-  const [sponsorBonus, setSponsorBonus] = useState<number>(2000000);
-  const [news, setNews] = useState<string[]>(['🚀 Versão Enterprise Ativada: Quadro tático avançado, gestão de contratos e analytics liberados!']);
+  const [sponsorBonus, setSponsorBonus] = useState<number>(2500000);
+  const [news, setNews] = useState<string[]>(['🚀 Versão Ultra Pro Ativada: Academia de Base, Torneios Internacionais e Táticas em tempo real disponíveis!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  const [youthAcademy, setYouthAcademy] = useState<YouthPlayer[]>([
+    { id: 201, name: 'Mateus Lima', pos: 'ATA', overall: 68, potential: 88, age: 16 },
+    { id: 202, name: 'Gabriel Santos', pos: 'MEI', overall: 66, potential: 85, age: 17 },
+    { id: 203, name: 'Lucas Silva', pos: 'DEF', overall: 65, potential: 83, age: 16 },
+  ]);
 
   const [cupPhase, setCupPhase] = useState<'Semifinal' | 'Final' | 'Encerrada'>('Semifinal');
   const [cupWinner, setCupWinner] = useState<string>('Em andamento');
@@ -89,7 +105,7 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_enterprise');
+    const savedData = localStorage.getItem('brasfoot_save_ultra_pro');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -101,6 +117,7 @@ export default function App() {
         if (parsed.teams) setTeams(parsed.teams);
         if (parsed.squad) setSquad(parsed.squad);
         if (parsed.history) setHistory(parsed.history);
+        if (parsed.youthAcademy) setYouthAcademy(parsed.youthAcademy);
         if (parsed.myTeam) setScreen('dashboard');
       } catch (e) {
         console.error("Erro ao carregar save", e);
@@ -109,8 +126,32 @@ export default function App() {
   }, []);
 
   const saveGame = () => {
-    const dataToSave = { myTeam, money, managerReputation, round, seasonCount, teams, squad, history };
-    localStorage.setItem('brasfoot_save_enterprise', JSON.stringify(dataToSave));
+    const dataToSave = { myTeam, money, managerReputation, round, seasonCount, teams, squad, history, youthAcademy };
+    localStorage.setItem('brasfoot_save_ultra_pro', JSON.stringify(dataToSave));
+  };
+
+  const promoteYouth = (youth: YouthPlayer) => {
+    const newPlayer: Player = {
+      id: Date.now(),
+      name: youth.name,
+      pos: youth.pos,
+      overall: youth.overall,
+      energy: 100,
+      morale: 95,
+      value: 4000000,
+      salary: 80000,
+      contractYears: 4,
+      goals: 0,
+      injured: false,
+      yellowCards: 0,
+      suspended: false,
+      age: youth.age,
+      isYouthPromoted: true
+    };
+    setSquad([...squad, newPlayer]);
+    setYouthAcademy(youthAcademy.filter(y => y.id !== youth.id));
+    setNews([`🌟 CATEGORIA DE BASE: ${youth.name} foi promovido ao time profissional!`, ...news]);
+    saveGame();
   };
 
   const renewContract = (player: Player) => {
@@ -185,12 +226,12 @@ export default function App() {
 
       {screen === 'menu' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-          <h2>Modo Treinador Pro</h2>
+          <h2>Carreira Treinador Pro</h2>
           <p style={{ color: '#cbd5e1', marginBottom: '20px', fontSize: '13px' }}>
-            A versão definitiva para gerenciar táticas, contratos e estatísticas.
+            A plataforma definitiva de simulação futebolística no mobile.
           </p>
           <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px' }}>
-            Iniciar Carreira
+            Iniciar Nova Carreira
           </button>
         </div>
       )}
@@ -236,7 +277,8 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '4px', overflowX: 'auto' }}>
             <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tabela</button>
-            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco/Contratos</button>
+            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
+            <button onClick={() => setTab('youth')} style={{ flex: 1, background: tab === 'youth' ? '#eab308' : '#334155', color: tab === 'youth' ? '#000' : '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Base 🌱</button>
             <button onClick={() => setTab('tactics')} style={{ flex: 1, background: tab === 'tactics' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tática 📋</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
@@ -272,33 +314,38 @@ export default function App() {
             </>
           )}
 
+          {tab === 'youth' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Academia de Jovens Talentos (Sub-20)</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '12px', marginBottom: '12px' }}>
+                Promova promessas da base diretamente para a equipe profissional.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {youthAcademy.map((y) => (
+                  <div key={y.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
+                    <div>
+                      <strong>{y.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({y.pos}, {y.age} anos)</span>
+                      <div style={{ color: '#eab308', fontSize: '12px' }}>OVR Atual: {y.overall} | Potencial: ⭐ {y.potential}</div>
+                    </div>
+                    <button onClick={() => promoteYouth(y)} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
+                      Promover
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {tab === 'tactics' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Quadro Tático e Estilo</h3>
-              
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Quadro Tático Profissional</h3>
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '12px', color: '#cbd5e1', display: 'block', marginBottom: '4px' }}>Formação Tática:</label>
                 <select value={tacticsFormation} onChange={e => setTacticsFormation(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
                   <option value="4-3-3">4-3-3 (Ofensivo)</option>
                   <option value="4-4-2">4-4-2 (Equilibrado)</option>
-                  <option value="3-5-2">3-5-2 (Dominante no Meio)</option>
-                  <option value="5-4-1">5-4-1 (Retranca)</option>
-                </select>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '12px', color: '#cbd5e1', display: 'block', marginBottom: '4px' }}>Estilo de Jogo:</label>
-                <select value={tacticsStyle} onChange={e => setTacticsStyle(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
-                  <option value="Equilibrado">Equilibrado</option>
-                  <option value="Pressão Alta">Pressão Alta (Maior desgaste)</option>
-                  <option value="Contra-Ataque">Contra-Ataque Rápido</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', color: '#cbd5e1', display: 'block', marginBottom: '4px' }}>Batedor Oficial de Pênaltis:</label>
-                <select value={penaltyTaker} onChange={e => setPenaltyTaker(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: '6px' }}>
-                  {squad.map(p => <option key={p.id} value={p.name}>{p.name} (OVR {p.overall})</option>)}
+                  <option value="3-5-2">3-5-2 (Pressão Total)</option>
+                  <option value="5-4-1">5-4-1 (Contra-Ataque)</option>
                 </select>
               </div>
             </div>
@@ -306,7 +353,7 @@ export default function App() {
 
           {tab === 'squad' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Gestão de Elenco e Contratos</h3>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Elenco & Contratos</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
@@ -342,7 +389,7 @@ export default function App() {
 
           {tab === 'news' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Notícias</h3>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Feed de Notícias</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {news.map((item, i) => (
                   <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px', color: '#cbd5e1' }}>{item}</div>
