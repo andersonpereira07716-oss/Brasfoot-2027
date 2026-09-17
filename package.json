@@ -3,14 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p www && echo '<!DOCTYPE html><html><head><title>Brasfoot NextGen</title></head><body><div id=\"root\"></div></body></html>' > www/index.html",
+    "build": "vite build",
     "test": "npx tsx testRun.ts"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.0.0",
     "@capacitor/core": "^6.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^5.0.0"
   }
 }
