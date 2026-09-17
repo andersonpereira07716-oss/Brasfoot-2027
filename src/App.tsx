@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Team {
   name: string;
@@ -15,15 +15,24 @@ interface Player {
   value: number;
 }
 
+interface HistoryEntry {
+  season: number;
+  winner: string;
+  userTeam: string;
+  userPoints: number;
+}
+
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'news'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
+  const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
   const [logs, setLogs] = useState<string[]>([]);
   const [news, setNews] = useState<string[]>(['Bem-vindo à nova temporada do Brasfoot NextGen!']);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const [teams, setTeams] = useState<Team[]>([
     { name: 'Flamengo', points: 0, played: 0 },
@@ -46,9 +55,45 @@ export default function App() {
     { id: 103, name: 'Yuri Alberto', pos: 'ATA', overall: 79, energy: 100, value: 7000000 },
   ]);
 
+  // Carregar dados salvos
+  useEffect(() => {
+    const savedData = localStorage.getItem('brasfoot_save');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setMyTeam(parsed.myTeam || '');
+        setMoney(parsed.money || 50000000);
+        setRound(parsed.round || 1);
+        setSeasonCount(parsed.seasonCount || 1);
+        if (parsed.teams) setTeams(parsed.teams);
+        if (parsed.squad) setSquad(parsed.squad);
+        if (parsed.history) setHistory(parsed.history);
+        if (parsed.myTeam) setScreen('dashboard');
+      } catch (e) {
+        console.error("Erro ao carregar save", e);
+      }
+    }
+  }, []);
+
+  // Salvar progresso
+  const saveGame = () => {
+    const dataToSave = { myTeam, money, round, seasonCount, teams, squad, history };
+    localStorage.setItem('brasfoot_save', JSON.stringify(dataToSave));
+  };
+
   const simulateRound = () => {
     if (round >= 6) {
+      const winner = teams[0].name;
+      const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
+      const newHistory = [{ season: seasonCount, winner, userTeam: myTeam, userPoints }, ...history];
+
+      setHistory(newHistory);
       setScreen('champion');
+
+      // Salva histórico no encerramento
+      localStorage.setItem('brasfoot_save', JSON.stringify({
+        myTeam, money, round, seasonCount, teams, squad, history: newHistory
+      }));
       return;
     }
 
@@ -58,7 +103,6 @@ export default function App() {
     const match2A = newTeams[2];
     const match2B = newTeams[3];
 
-    // Bônus de sorte baseado na tática
     const tacticBonus = tactics === '4-3-3' ? 1 : 0;
     const score1A = Math.floor(Math.random() * (4 + tacticBonus));
     const score1B = Math.floor(Math.random() * 4);
@@ -83,7 +127,7 @@ export default function App() {
 
     if (Math.random() > 0.5) {
       const randomPlayer = squad[Math.floor(Math.random() * squad.length)];
-      setNews([`📰 Destaque: ${randomPlayer.name} teve grande atuação jogando no esquema ${tactics}!`, ...news]);
+      setNews([`📰 Destaque: ${randomPlayer.name} atuou bem na tática ${tactics}!`, ...news]);
     }
 
     setLogs([
@@ -92,11 +136,16 @@ export default function App() {
       ...logs
     ]);
     setRound(round + 1);
+    saveGame();
   };
 
-  const restSquad = () => {
-    setSquad(squad.map(p => ({ ...p, energy: Math.min(100, p.energy + 20) })));
-    alert('O elenco recuperou 20% de energia!');
+  const resetForNextSeason = () => {
+    setRound(1);
+    setSeasonCount(seasonCount + 1);
+    setTeams(teams.map(t => ({ ...t, points: 0, played: 0 })));
+    setSquad(squad.map(p => ({ ...p, energy: 100 })));
+    setScreen('dashboard');
+    saveGame();
   };
 
   const buyPlayer = (player: Player) => {
@@ -108,6 +157,7 @@ export default function App() {
     setSquad([...squad, player]);
     setMarket(market.filter(p => p.id !== player.id));
     setNews([`🤝 CONTRATAÇÃO: ${player.name} assinou com o ${myTeam}!`, ...news]);
+    saveGame();
   };
 
   const sellPlayer = (player: Player) => {
@@ -119,6 +169,14 @@ export default function App() {
     setSquad(squad.filter(p => p.id !== player.id));
     setMarket([...market, player]);
     setNews([`💰 VENDA: ${player.name} foi vendido por R$ ${(player.value / 1000000).toFixed(1)}M.`, ...news]);
+    saveGame();
+  };
+
+  const resetAllData = () => {
+    if (confirm('Deseja apagar todo o progresso do jogo?')) {
+      localStorage.removeItem('brasfoot_save');
+      window.location.reload();
+    }
   };
 
   return (
@@ -143,7 +201,7 @@ export default function App() {
           <h2 style={{ textAlign: 'center', marginTop: 0 }}>Selecione seu Time</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '20px 0' }}>
             {teams.map((t) => (
-              <button key={t.name} onClick={() => { setMyTeam(t.name); setScreen('dashboard'); }} style={{ background: '#334155', color: '#fff', border: '1px solid #475569', padding: '12px', borderRadius: '8px', fontWeight: 'bold', textAlign: 'left' }}>
+              <button key={t.name} onClick={() => { setMyTeam(t.name); setScreen('dashboard'); saveGame(); }} style={{ background: '#334155', color: '#fff', border: '1px solid #475569', padding: '12px', borderRadius: '8px', fontWeight: 'bold', textAlign: 'left' }}>
                 {t.name}
               </button>
             ))}
@@ -153,11 +211,11 @@ export default function App() {
 
       {screen === 'champion' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0' }}>🏆 Fim de Temporada!</h1>
+          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
           <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão: {teams[0].name}</p>
-          <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '16px 0' }}>Seu time encerrou a competição com {teams.find(t => t.name === myTeam)?.points} pontos.</p>
-          <button onClick={() => window.location.reload()} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%' }}>
-            Jogar Novamente
+          <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '16px 0' }}>Seu time encerrou com {teams.find(t => t.name === myTeam)?.points} pontos.</p>
+          <button onClick={resetForNextSeason} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%' }}>
+            Iniciar Temporada {seasonCount + 1}
           </button>
         </div>
       )}
@@ -166,9 +224,8 @@ export default function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold' }}>CLUBE ATUAL</span>
-              <h2 style={{ margin: '2px 0 0 0', fontSize: '20px' }}>{myTeam}</h2>
-              <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Rodada: {round}/6</p>
+              <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold' }}>CLUBE ATUAL ({myTeam})</span>
+              <h2 style={{ margin: '2px 0 0 0', fontSize: '18px' }}>Temp. {seasonCount} - Rodada {round}/6</h2>
             </div>
             <div style={{ textAlign: 'right' }}>
               <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold' }}>SALDO</span>
@@ -179,10 +236,11 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Tabela</button>
-            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Elenco</button>
-            <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Mercado</button>
-            <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Notícias</button>
+            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Tabela</button>
+            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Elenco</button>
+            <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Mercado</button>
+            <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Notícias</button>
+            <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Galeria</button>
           </div>
 
           {tab === 'league' && (
@@ -212,44 +270,26 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
-
-              {logs.length > 0 && (
-                <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-                  <h3 style={{ marginTop: 0, fontSize: '16px' }}>Últimos Resultados</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', color: '#cbd5e1' }}>
-                    {logs.slice(0, 6).map((log, i) => (
-                      <div key={i} style={{ padding: '6px', background: '#0f172a', borderRadius: '4px' }}>{log}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </>
           )}
 
           {tab === 'squad' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Elenco ({squad.length})</h3>
-                <button onClick={restSquad} style={{ background: '#eab308', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
-                  🛋️ Descansar
-                </button>
-              </div>
-
+              <h3 style={{ margin: 0, fontSize: '16px', marginBottom: '12px' }}>Elenco ({squad.length})</h3>
               <div style={{ marginBottom: '16px', background: '#0f172a', padding: '10px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold' }}>Tática Atual:</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold' }}>Tática:</span>
                 <select value={tactics} onChange={(e) => setTactics(e.target.value)} style={{ background: '#334155', color: '#fff', border: 'none', padding: '6px', borderRadius: '4px', fontWeight: 'bold' }}>
                   <option value="4-3-3">4-3-3 (Ofensivo)</option>
                   <option value="4-4-2">4-4-2 (Equilibrado)</option>
                   <option value="5-3-2">5-3-2 (Defensivo)</option>
                 </select>
               </div>
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
                       <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
-                      <div style={{ color: '#60a5fa', fontSize: '12px', marginTop: '2px' }}>OVR: {p.overall} | ⚡ {p.energy}%</div>
+                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | ⚡ {p.energy}%</div>
                     </div>
                     <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
                       Vender (R$ {(p.value / 1000000).toFixed(1)}M)
@@ -264,21 +304,15 @@ export default function App() {
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
               <h3 style={{ marginTop: 0, fontSize: '16px' }}>Mercado de Transferências</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {market.length === 0 ? (
-                  <p style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum jogador disponível no mercado.</p>
-                ) : (
-                  market.map((p) => (
-                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
-                      <div>
-                        <strong>{p.name}</strong> ({p.pos}) - OVR: {p.overall}
-                        <div style={{ color: '#4ade80', fontWeight: 'bold', marginTop: '2px' }}>R$ {(p.value / 1000000).toFixed(1)}M</div>
-                      </div>
-                      <button onClick={() => buyPlayer(p)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold' }}>
-                        Comprar
-                      </button>
+                {market.map((p) => (
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
+                    <div>
+                      <strong>{p.name}</strong> ({p.pos}) - OVR: {p.overall}
+                      <div style={{ color: '#4ade80', fontWeight: 'bold' }}>R$ {(p.value / 1000000).toFixed(1)}M</div>
                     </div>
-                  ))
-                )}
+                    <button onClick={() => buyPlayer(p)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold' }}>Comprar</button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -288,11 +322,30 @@ export default function App() {
               <h3 style={{ marginTop: 0, fontSize: '16px' }}>Feed de Notícias</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {news.map((item, i) => (
-                  <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px', color: '#cbd5e1' }}>
-                    {item}
-                  </div>
+                  <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px', color: '#cbd5e1' }}>{item}</div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {tab === 'history' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Galeria de Campeões</h3>
+              {history.length === 0 ? (
+                <p style={{ color: '#94a3b8', fontSize: '13px' }}>Nenhum histórico registrado ainda.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {history.map((h, i) => (
+                    <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
+                      <div style={{ fontWeight: 'bold', color: '#eab308' }}>🏆 Temporada {h.season}: Campeão {h.winner}</div>
+                      <div style={{ color: '#cbd5e1', fontSize: '12px' }}>Seu time ({h.userTeam}): {h.userPoints} pts</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button onClick={resetAllData} style={{ marginTop: '20px', background: '#dc2626', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold', width: '100%', fontSize: '12px' }}>
+                Resetar Todo o Jogo
+              </button>
             </div>
           )}
         </div>
