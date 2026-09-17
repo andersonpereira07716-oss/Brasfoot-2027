@@ -118,7 +118,7 @@ export default function App() {
 
     const tacticBonus = tactics === '4-3-3' ? 1 : 0;
     const score1A = Math.floor(Math.random() * (4 + tacticBonus));
-    score1B = Math.floor(Math.random() * 4);
+    const score1B = Math.floor(Math.random() * 4);
     const score2A = Math.floor(Math.random() * 4);
     const score2B = Math.floor(Math.random() * 4);
 
@@ -143,7 +143,6 @@ export default function App() {
       let isSuspended = p.suspended;
       let cards = p.yellowCards;
 
-      // Se suspenso/lesionado, recupera na próxima rodada
       if (isInjured) {
         isInjured = false;
         newNews.unshift(`🏥 DEPARTAMENTO MÉDICO: ${p.name} se recuperou de lesão!`);
@@ -158,7 +157,6 @@ export default function App() {
           newGoals += 1;
         }
 
-        // Chance de Cartão Amarelo
         if (Math.random() < 0.25) {
           cards += 1;
           if (cards >= 2) {
@@ -167,7 +165,6 @@ export default function App() {
           }
         }
 
-        // Chance de Lesão
         if (Math.random() < 0.1) {
           isInjured = true;
           newNews.unshift(`🚑 LESÃO: ${p.name} sentiu dores e foi parar no departamento médico!`);
@@ -290,7 +287,7 @@ export default function App() {
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
           <h1 style={{ fontSize: '26px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
           <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão: {teams[0].name}</p>
-
+          
           <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '12px 0 4px 0' }}>
             Seu time encerrou com {userPoints} {userPoints === 1 ? 'ponto' : 'pontos'}.
           </p>
