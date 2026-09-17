@@ -7,17 +7,20 @@ interface Team {
 }
 
 interface Player {
+  id: number;
   name: string;
   pos: 'GOL' | 'DEF' | 'MEI' | 'ATA';
   overall: number;
   energy: number;
+  value: number;
 }
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [round, setRound] = useState<number>(1);
+  const [money, setMoney] = useState<number>(50000000); // R$ 50 Milhões
   const [logs, setLogs] = useState<string[]>([]);
   const [teams, setTeams] = useState<Team[]>([
     { name: 'Flamengo', points: 0, played: 0 },
@@ -27,17 +30,21 @@ export default function App() {
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
-    { name: 'Weverton', pos: 'GOL', overall: 82, energy: 100 },
-    { name: 'Gomez', pos: 'DEF', overall: 84, energy: 95 },
-    { name: 'Murilo', pos: 'DEF', overall: 80, energy: 92 },
-    { name: 'Veiga', pos: 'MEI', overall: 85, energy: 88 },
-    { name: 'Estêvão', pos: 'ATA', overall: 83, energy: 90 },
+    { id: 1, name: 'Weverton', pos: 'GOL', overall: 82, energy: 100, value: 5000000 },
+    { id: 2, name: 'Gomez', pos: 'DEF', overall: 84, energy: 95, value: 12000000 },
+    { id: 3, name: 'Murilo', pos: 'DEF', overall: 80, energy: 92, value: 8000000 },
+    { id: 4, name: 'Veiga', pos: 'MEI', overall: 85, energy: 88, value: 15000000 },
+    { id: 5, name: 'Estêvão', pos: 'ATA', overall: 83, energy: 90, value: 20000000 },
+  ]);
+
+  const [market, setMarket] = useState<Player[]>([
+    { id: 101, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 100, value: 18000000 },
+    { id: 102, name: 'Calleri', pos: 'ATA', overall: 81, energy: 100, value: 10000000 },
+    { id: 103, name: 'Yuri Alberto', pos: 'ATA', overall: 79, energy: 100, value: 7000000 },
   ]);
 
   const simulateRound = () => {
     const newTeams = [...teams];
-
-    // Sorteia confrontos em duplas (1 vs 2, 3 vs 4)
     const match1A = newTeams[0];
     const match1B = newTeams[1];
     const match2A = newTeams[2];
@@ -48,15 +55,12 @@ export default function App() {
     const score2A = Math.floor(Math.random() * 4);
     const score2B = Math.floor(Math.random() * 4);
 
-    // Atualiza Jogos
     newTeams.forEach(t => t.played += 1);
 
-    // Pontuação Jogo 1
     if (score1A > score1B) match1A.points += 3;
     else if (score1B > score1A) match1B.points += 3;
     else { match1A.points += 1; match1B.points += 1; }
 
-    // Pontuação Jogo 2
     if (score2A > score2B) match2A.points += 3;
     else if (score2B > score2A) match2B.points += 3;
     else { match2A.points += 1; match2B.points += 1; }
@@ -64,8 +68,9 @@ export default function App() {
     newTeams.sort((a, b) => b.points - a.points);
     setTeams(newTeams);
 
-    // Desgasta energia do elenco
-    setSquad(squad.map(p => ({ ...p, energy: Math.max(50, p.energy - Math.floor(Math.random() * 5 + 2)) })));
+    // Desgaste e Renda de Bilheteria (+ R$ 1.5M por jogo em casa)
+    setSquad(squad.map(p => ({ ...p, energy: Math.max(40, p.energy - Math.floor(Math.random() * 6 + 3)) })));
+    setMoney(prev => prev + 1500000);
 
     setLogs([
       `Rodada ${round}: ${match1A.name} ${score1A} x ${score1B} ${match1B.name}`,
@@ -73,6 +78,22 @@ export default function App() {
       ...logs
     ]);
     setRound(round + 1);
+  };
+
+  const restSquad = () => {
+    setSquad(squad.map(p => ({ ...p, energy: Math.min(100, p.energy + 20) })));
+    alert('O elenco recuperou 20% de energia!');
+  };
+
+  const buyPlayer = (player: Player) => {
+    if (money < player.value) {
+      alert('Saldo insuficiente!');
+      return;
+    }
+    setMoney(money - player.value);
+    setSquad([...squad, player]);
+    setMarket(market.filter(p => p.id !== player.id));
+    alert(`${player.name} foi contratado!`);
   };
 
   return (
@@ -107,18 +128,27 @@ export default function App() {
 
       {screen === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-            <span style={{ fontSize: '12px', color: '#22c55e', fontWeight: 'bold' }}>CLUBE ATUAL</span>
-            <h2 style={{ margin: '4px 0 0 0' }}>{myTeam}</h2>
-            <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '14px' }}>Rodada Atual: {round}</p>
+          <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold' }}>CLUBE ATUAL</span>
+              <h2 style={{ margin: '2px 0 0 0', fontSize: '20px' }}>{myTeam}</h2>
+              <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Rodada: {round}</p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold' }}>SALDO</span>
+              <p style={{ margin: '2px 0 0 0', color: '#4ade80', fontWeight: 'bold', fontSize: '15px' }}>
+                R$ {(money / 1000000).toFixed(1)}M
+              </p>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold' }}>Tabela</button>
-            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold' }}>Elenco</button>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>Tabela</button>
+            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>Elenco</button>
+            <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>Mercado</button>
           </div>
 
-          {tab === 'league' ? (
+          {tab === 'league' && (
             <>
               <button onClick={simulateRound} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: 'bold', fontSize: '16px' }}>
                 Jogar Rodada {round}
@@ -157,12 +187,19 @@ export default function App() {
                 </div>
               )}
             </>
-          ) : (
+          )}
+
+          {tab === 'squad' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Jogadores do Elenco</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Elenco ({squad.length})</h3>
+                <button onClick={restSquad} style={{ background: '#eab308', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
+                  🛋️ Descansar
+                </button>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
-                  <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '14px' }}>
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '14px' }}>
                     <div>
                       <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '12px' }}>({p.pos})</span>
                     </div>
@@ -172,6 +209,29 @@ export default function App() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {tab === 'market' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Mercado de Transferências</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {market.length === 0 ? (
+                  <p style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum jogador disponível no mercado.</p>
+                ) : (
+                  market.map((p) => (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
+                      <div>
+                        <strong>{p.name}</strong> ({p.pos}) - OVR: {p.overall}
+                        <div style={{ color: '#4ade80', fontWeight: 'bold', marginTop: '2px' }}>R$ {(p.value / 1000000).toFixed(1)}M</div>
+                      </div>
+                      <button onClick={() => buyPlayer(p)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold' }}>
+                        Comprar
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
