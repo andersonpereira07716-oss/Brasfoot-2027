@@ -16,9 +16,10 @@ interface Player {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard'>('menu');
+  const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
   const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'news'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
+  const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
   const [logs, setLogs] = useState<string[]>([]);
@@ -46,13 +47,20 @@ export default function App() {
   ]);
 
   const simulateRound = () => {
+    if (round >= 6) {
+      setScreen('champion');
+      return;
+    }
+
     const newTeams = [...teams];
     const match1A = newTeams[0];
     const match1B = newTeams[1];
     const match2A = newTeams[2];
     const match2B = newTeams[3];
 
-    const score1A = Math.floor(Math.random() * 4);
+    // Bônus de sorte baseado na tática
+    const tacticBonus = tactics === '4-3-3' ? 1 : 0;
+    const score1A = Math.floor(Math.random() * (4 + tacticBonus));
     const score1B = Math.floor(Math.random() * 4);
     const score2A = Math.floor(Math.random() * 4);
     const score2B = Math.floor(Math.random() * 4);
@@ -73,10 +81,9 @@ export default function App() {
     setSquad(squad.map(p => ({ ...p, energy: Math.max(40, p.energy - Math.floor(Math.random() * 6 + 3)) })));
     setMoney(prev => prev + 1500000);
 
-    // Evento aleatório de imprensa/notícia
     if (Math.random() > 0.5) {
       const randomPlayer = squad[Math.floor(Math.random() * squad.length)];
-      setNews([`📰 Imprensa elogia a atuação de ${randomPlayer.name} na Rodada ${round}!`, ...news]);
+      setNews([`📰 Destaque: ${randomPlayer.name} teve grande atuação jogando no esquema ${tactics}!`, ...news]);
     }
 
     setLogs([
@@ -144,13 +151,24 @@ export default function App() {
         </div>
       )}
 
+      {screen === 'champion' && (
+        <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
+          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0' }}>🏆 Fim de Temporada!</h1>
+          <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão: {teams[0].name}</p>
+          <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '16px 0' }}>Seu time encerrou a competição com {teams.find(t => t.name === myTeam)?.points} pontos.</p>
+          <button onClick={() => window.location.reload()} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%' }}>
+            Jogar Novamente
+          </button>
+        </div>
+      )}
+
       {screen === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold' }}>CLUBE ATUAL</span>
               <h2 style={{ margin: '2px 0 0 0', fontSize: '20px' }}>{myTeam}</h2>
-              <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Rodada: {round}</p>
+              <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Rodada: {round}/6</p>
             </div>
             <div style={{ textAlign: 'right' }}>
               <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold' }}>SALDO</span>
@@ -170,7 +188,7 @@ export default function App() {
           {tab === 'league' && (
             <>
               <button onClick={simulateRound} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: 'bold', fontSize: '16px' }}>
-                Jogar Rodada {round}
+                {round >= 6 ? 'Encerrar Temporada 🏆' : `Jogar Rodada ${round}`}
               </button>
 
               <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
@@ -216,6 +234,16 @@ export default function App() {
                   🛋️ Descansar
                 </button>
               </div>
+
+              <div style={{ marginBottom: '16px', background: '#0f172a', padding: '10px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold' }}>Tática Atual:</span>
+                <select value={tactics} onChange={(e) => setTactics(e.target.value)} style={{ background: '#334155', color: '#fff', border: 'none', padding: '6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                  <option value="4-3-3">4-3-3 (Ofensivo)</option>
+                  <option value="4-4-2">4-4-2 (Equilibrado)</option>
+                  <option value="5-3-2">5-3-2 (Defensivo)</option>
+                </select>
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
