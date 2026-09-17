@@ -17,11 +17,13 @@ interface Player {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'news'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [round, setRound] = useState<number>(1);
-  const [money, setMoney] = useState<number>(50000000); // R$ 50 Milhões
+  const [money, setMoney] = useState<number>(50000000);
   const [logs, setLogs] = useState<string[]>([]);
+  const [news, setNews] = useState<string[]>(['Bem-vindo à nova temporada do Brasfoot NextGen!']);
+
   const [teams, setTeams] = useState<Team[]>([
     { name: 'Flamengo', points: 0, played: 0 },
     { name: 'Palmeiras', points: 0, played: 0 },
@@ -68,9 +70,14 @@ export default function App() {
     newTeams.sort((a, b) => b.points - a.points);
     setTeams(newTeams);
 
-    // Desgaste e Renda de Bilheteria (+ R$ 1.5M por jogo em casa)
     setSquad(squad.map(p => ({ ...p, energy: Math.max(40, p.energy - Math.floor(Math.random() * 6 + 3)) })));
     setMoney(prev => prev + 1500000);
+
+    // Evento aleatório de imprensa/notícia
+    if (Math.random() > 0.5) {
+      const randomPlayer = squad[Math.floor(Math.random() * squad.length)];
+      setNews([`📰 Imprensa elogia a atuação de ${randomPlayer.name} na Rodada ${round}!`, ...news]);
+    }
 
     setLogs([
       `Rodada ${round}: ${match1A.name} ${score1A} x ${score1B} ${match1B.name}`,
@@ -93,7 +100,18 @@ export default function App() {
     setMoney(money - player.value);
     setSquad([...squad, player]);
     setMarket(market.filter(p => p.id !== player.id));
-    alert(`${player.name} foi contratado!`);
+    setNews([`🤝 CONTRATAÇÃO: ${player.name} assinou com o ${myTeam}!`, ...news]);
+  };
+
+  const sellPlayer = (player: Player) => {
+    if (squad.length <= 3) {
+      alert('Você precisa ter pelo menos 3 jogadores no elenco!');
+      return;
+    }
+    setMoney(money + player.value);
+    setSquad(squad.filter(p => p.id !== player.id));
+    setMarket([...market, player]);
+    setNews([`💰 VENDA: ${player.name} foi vendido por R$ ${(player.value / 1000000).toFixed(1)}M.`, ...news]);
   };
 
   return (
@@ -142,10 +160,11 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>Tabela</button>
-            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>Elenco</button>
-            <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>Mercado</button>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Tabela</button>
+            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Elenco</button>
+            <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Mercado</button>
+            <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '10px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Notícias</button>
           </div>
 
           {tab === 'league' && (
@@ -199,14 +218,14 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '14px' }}>
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
-                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '12px' }}>({p.pos})</span>
+                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
+                      <div style={{ color: '#60a5fa', fontSize: '12px', marginTop: '2px' }}>OVR: {p.overall} | ⚡ {p.energy}%</div>
                     </div>
-                    <div>
-                      <span style={{ color: '#60a5fa', marginRight: '10px' }}>OVR: {p.overall}</span>
-                      <span style={{ color: p.energy > 80 ? '#4ade80' : '#f87171' }}>⚡ {p.energy}%</span>
-                    </div>
+                    <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
+                      Vender (R$ {(p.value / 1000000).toFixed(1)}M)
+                    </button>
                   </div>
                 ))}
               </div>
@@ -232,6 +251,19 @@ export default function App() {
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+          )}
+
+          {tab === 'news' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Feed de Notícias</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {news.map((item, i) => (
+                  <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px', color: '#cbd5e1' }}>
+                    {item}
+                  </div>
+                ))}
               </div>
             </div>
           )}
