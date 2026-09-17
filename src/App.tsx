@@ -14,6 +14,9 @@ interface Player {
   energy: number;
   value: number;
   goals: number;
+  injured: boolean;
+  yellowCards: number;
+  suspended: boolean;
 }
 
 interface HistoryEntry {
@@ -26,7 +29,7 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'news' | 'topscorers' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
@@ -45,17 +48,17 @@ export default function App() {
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
-    { id: 1, name: 'Weverton', pos: 'GOL', overall: 82, energy: 100, value: 5000000, goals: 0 },
-    { id: 2, name: 'Gomez', pos: 'DEF', overall: 84, energy: 95, value: 12000000, goals: 0 },
-    { id: 3, name: 'Murilo', pos: 'DEF', overall: 80, energy: 92, value: 8000000, goals: 0 },
-    { id: 4, name: 'Veiga', pos: 'MEI', overall: 85, energy: 88, value: 15000000, goals: 0 },
-    { id: 5, name: 'Estêvão', pos: 'ATA', overall: 83, energy: 90, value: 20000000, goals: 0 },
+    { id: 1, name: 'Weverton', pos: 'GOL', overall: 82, energy: 100, value: 5000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 2, name: 'Gomez', pos: 'DEF', overall: 84, energy: 95, value: 12000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 3, name: 'Murilo', pos: 'DEF', overall: 80, energy: 92, value: 8000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 4, name: 'Veiga', pos: 'MEI', overall: 85, energy: 88, value: 15000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 5, name: 'Estêvão', pos: 'ATA', overall: 83, energy: 90, value: 20000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
   ]);
 
   const [market, setMarket] = useState<Player[]>([
-    { id: 101, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 100, value: 18000000, goals: 0 },
-    { id: 102, name: 'Calleri', pos: 'ATA', overall: 81, energy: 100, value: 10000000, goals: 0 },
-    { id: 103, name: 'Yuri Alberto', pos: 'ATA', overall: 79, energy: 100, value: 7000000, goals: 0 },
+    { id: 101, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 100, value: 18000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 102, name: 'Calleri', pos: 'ATA', overall: 81, energy: 100, value: 10000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 103, name: 'Yuri Alberto', pos: 'ATA', overall: 79, energy: 100, value: 7000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
   ]);
 
   useEffect(() => {
@@ -115,7 +118,7 @@ export default function App() {
 
     const tacticBonus = tactics === '4-3-3' ? 1 : 0;
     const score1A = Math.floor(Math.random() * (4 + tacticBonus));
-    const score1B = Math.floor(Math.random() * 4);
+    score1B = Math.floor(Math.random() * 4);
     const score2A = Math.floor(Math.random() * 4);
     const score2B = Math.floor(Math.random() * 4);
 
@@ -132,15 +135,57 @@ export default function App() {
     newTeams.sort((a, b) => b.points - a.points);
     setTeams(newTeams);
 
+    let newNews = [...news];
+
     const updatedSquad = squad.map(p => {
       let newGoals = p.goals;
-      if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.4) {
-        newGoals += 1;
+      let isInjured = p.injured;
+      let isSuspended = p.suspended;
+      let cards = p.yellowCards;
+
+      // Se suspenso/lesionado, recupera na próxima rodada
+      if (isInjured) {
+        isInjured = false;
+        newNews.unshift(`🏥 DEPARTAMENTO MÉDICO: ${p.name} se recuperou de lesão!`);
       }
-      return { ...p, goals: newGoals, energy: Math.max(30, p.energy - Math.floor(Math.random() * 8 + 4)) };
+      if (isSuspended) {
+        isSuspended = false;
+        cards = 0;
+      }
+
+      if (!isInjured && !isSuspended) {
+        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.4) {
+          newGoals += 1;
+        }
+
+        // Chance de Cartão Amarelo
+        if (Math.random() < 0.25) {
+          cards += 1;
+          if (cards >= 2) {
+            isSuspended = true;
+            newNews.unshift(`🟨 SUSPENSÃO: ${p.name} recebeu o 2º cartão amarelo e desfalca o time na próxima rodada!`);
+          }
+        }
+
+        // Chance de Lesão
+        if (Math.random() < 0.1) {
+          isInjured = true;
+          newNews.unshift(`🚑 LESÃO: ${p.name} sentiu dores e foi parar no departamento médico!`);
+        }
+      }
+
+      return { 
+        ...p, 
+        goals: newGoals, 
+        injured: isInjured, 
+        suspended: isSuspended, 
+        yellowCards: cards,
+        energy: isInjured ? 50 : Math.max(30, p.energy - Math.floor(Math.random() * 8 + 4)) 
+      };
     });
 
     setSquad(updatedSquad);
+    setNews(newNews);
     setMoney(prev => prev + 1500000);
 
     setLogs([
@@ -172,7 +217,7 @@ export default function App() {
     setRound(1);
     setSeasonCount(seasonCount + 1);
     setTeams(teams.map(t => ({ ...t, points: 0, played: 0 })));
-    setSquad(squad.map(p => ({ ...p, energy: 100 })));
+    setSquad(squad.map(p => ({ ...p, energy: 100, goals: 0, injured: false, suspended: false, yellowCards: 0 })));
     setScreen('dashboard');
     saveGame();
   };
@@ -209,6 +254,7 @@ export default function App() {
   };
 
   const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
+  const sortedScorers = [...squad].sort((a, b) => b.goals - a.goals);
 
   return (
     <div style={{ padding: '16px', color: '#fff', minHeight: '100vh', background: '#0f172a', fontFamily: 'sans-serif' }}>
@@ -277,12 +323,13 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Tabela</button>
-            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Elenco</button>
-            <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Mercado</button>
-            <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Notícias</button>
-            <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 2px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>Galeria</button>
+          <div style={{ display: 'flex', gap: '4px', overflowX: 'auto' }}>
+            <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tabela</button>
+            <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
+            <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
+            <button onClick={() => setTab('topscorers')} style={{ flex: 1, background: tab === 'topscorers' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Artilharia</button>
+            <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
+            <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Galeria</button>
           </div>
 
           {tab === 'league' && (
@@ -337,9 +384,14 @@ export default function App() {
                 {squad.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
-                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
-                      <div style={{ color: p.energy < 50 ? '#ef4444' : '#60a5fa', fontSize: '12px' }}>
-                        OVR: {p.overall} | ⚡ {p.energy}% | ⚽ {p.goals} Gols
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <strong>{p.name}</strong>
+                        <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
+                        {p.injured && <span style={{ background: '#ef4444', color: '#fff', fontSize: '10px', padding: '1px 4px', borderRadius: '4px' }}>🏥 LESIONADO</span>}
+                        {p.suspended && <span style={{ background: '#eab308', color: '#000', fontSize: '10px', padding: '1px 4px', borderRadius: '4px' }}>🟨 SUSPENSO</span>}
+                      </div>
+                      <div style={{ color: p.energy < 50 ? '#ef4444' : '#60a5fa', fontSize: '12px', marginTop: '2px' }}>
+                        OVR: {p.overall} | ⚡ {p.energy}% | ⚽ {p.goals} Gols | 🟨 {p.yellowCards}
                       </div>
                     </div>
                     <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
@@ -362,6 +414,23 @@ export default function App() {
                       <div style={{ color: '#4ade80', fontWeight: 'bold' }}>R$ {(p.value / 1000000).toFixed(1)}M</div>
                     </div>
                     <button onClick={() => buyPlayer(p)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold' }}>Comprar</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === 'topscorers' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Artilharia da Equipe</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {sortedScorers.map((p, idx) => (
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
+                    <div>
+                      <span style={{ color: '#eab308', fontWeight: 'bold', marginRight: '8px' }}>#{idx + 1}</span>
+                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
+                    </div>
+                    <strong style={{ color: '#4ade80' }}>⚽ {p.goals} Gols</strong>
                   </div>
                 ))}
               </div>
