@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p www",
+    "build": "mkdir -p www && echo '<!DOCTYPE html><html><head><title>Brasfoot NextGen</title></head><body><div id=\"root\"></div></body></html>' > www/index.html",
     "test": "npx tsx testRun.ts"
   },
   "dependencies": {
