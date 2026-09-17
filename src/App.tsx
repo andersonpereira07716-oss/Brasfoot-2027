@@ -89,7 +89,6 @@ export default function App() {
       const userPoints = teams[userIndex]?.points || 0;
       const userRank = userIndex + 1;
 
-      // Premiação por colocação
       let reward = 5000000;
       if (userRank === 1) reward = 20000000;
       else if (userRank === 2) reward = 12000000;
@@ -138,7 +137,7 @@ export default function App() {
       if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.4) {
         newGoals += 1;
       }
-      return { ...p, goals: newGoals, energy: Math.max(40, p.energy - Math.floor(Math.random() * 6 + 3)) };
+      return { ...p, goals: newGoals, energy: Math.max(30, p.energy - Math.floor(Math.random() * 8 + 4)) };
     });
 
     setSquad(updatedSquad);
@@ -150,6 +149,22 @@ export default function App() {
       ...logs
     ]);
     setRound(round + 1);
+    saveGame();
+  };
+
+  const trainSquad = () => {
+    if (money < 1000000) {
+      alert('Você precisa de R$ 1.0M para realizar um treino intensivo!');
+      return;
+    }
+    setMoney(money - 1000000);
+    const recoveredSquad = squad.map(p => ({
+      ...p,
+      energy: Math.min(100, p.energy + 25),
+      overall: Math.random() > 0.6 ? p.overall + 1 : p.overall
+    }));
+    setSquad(recoveredSquad);
+    setNews([`🏋️ TREINO: O elenco treinou pesado! Energia recuperada e evolução física obtida.`, ...news]);
     saveGame();
   };
 
@@ -230,7 +245,6 @@ export default function App() {
           <h1 style={{ fontSize: '26px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
           <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão: {teams[0].name}</p>
 
-          {/* Trata o plural de pontos e exibe bônus financeiro */}
           <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '12px 0 4px 0' }}>
             Seu time encerrou com {userPoints} {userPoints === 1 ? 'ponto' : 'pontos'}.
           </p>
@@ -303,7 +317,13 @@ export default function App() {
 
           {tab === 'squad' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', marginBottom: '12px' }}>Elenco ({squad.length})</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Elenco ({squad.length})</h3>
+                <button onClick={trainSquad} style={{ background: '#eab308', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
+                  🏋️ Treinar (R$ 1.0M)
+                </button>
+              </div>
+
               <div style={{ marginBottom: '16px', background: '#0f172a', padding: '10px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold' }}>Tática:</span>
                 <select value={tactics} onChange={(e) => setTactics(e.target.value)} style={{ background: '#334155', color: '#fff', border: 'none', padding: '6px', borderRadius: '4px', fontWeight: 'bold' }}>
@@ -312,12 +332,15 @@ export default function App() {
                   <option value="5-3-2">5-3-2 (Defensivo)</option>
                 </select>
               </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
                       <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
-                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | ⚡ {p.energy}% | ⚽ {p.goals} Gols</div>
+                      <div style={{ color: p.energy < 50 ? '#ef4444' : '#60a5fa', fontSize: '12px' }}>
+                        OVR: {p.overall} | ⚡ {p.energy}% | ⚽ {p.goals} Gols
+                      </div>
                     </div>
                     <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
                       Vender (R$ {(p.value / 1000000).toFixed(1)}M)
