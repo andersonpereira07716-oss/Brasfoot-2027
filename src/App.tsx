@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
+// === CONFIGURAÇÕES E TEMAS REBRANDABLE ===
+const APP_CONFIG = {
+  appName: "Brasfoot NextGen Developer Edition",
+  version: "3.2.0-PRO",
+  currencySymbol: "R$",
+  enableAdRewards: true,
+  defaultLanguage: "PT-BR"
+};
+
 interface Team {
+  id: string;
   name: string;
   points: number;
   played: number;
@@ -24,13 +34,6 @@ interface Player {
   age: number;
 }
 
-interface Achievement {
-  id: string;
-  title: string;
-  desc: string;
-  unlocked: boolean;
-}
-
 interface HistoryEntry {
   season: number;
   winner: string;
@@ -42,8 +45,8 @@ interface HistoryEntry {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'scout' | 'trophies' | 'news' | 'history'>('league');
+  const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion' | 'dev_panel'>('menu');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'scout' | 'monetization' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
@@ -51,26 +54,17 @@ export default function App() {
   const [money, setMoney] = useState<number>(50000000);
   const [managerReputation, setManagerReputation] = useState<number>(50);
   const [sponsorBonus, setSponsorBonus] = useState<number>(2000000);
-  const [news, setNews] = useState<string[]>(['🚀 Brasfoot NextGen Pro Max: Sala de Troféus e Reputação de Técnico ativadas!']);
+  const [news, setNews] = useState<string[]>(['🚀 Template Dev Pro ativado: Arquitetura comercial pronta para publicação e monetização!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [lastReward, setLastReward] = useState<number>(0);
-  const [marketFilter, setMarketFilter] = useState<string>('ALL');
 
   const [cupPhase, setCupPhase] = useState<'Semifinal' | 'Final' | 'Encerrada'>('Semifinal');
   const [cupWinner, setCupWinner] = useState<string>('Em andamento');
 
-  const [achievements, setAchievements] = useState<Achievement[]>([
-    { id: 'first_win', title: 'Primeiros Passos', desc: 'Vença sua primeira partida na Liga', unlocked: false },
-    { id: 'cup_champ', title: 'Rei do Mata-Mata', desc: 'Conquiste a Copa Nacional', unlocked: false },
-    { id: 'rich', title: 'Cofre Cheio', desc: 'Acumule mais de R$ 80M em caixa', unlocked: false },
-    { id: 'stadium_master', title: 'Arena Monumental', desc: 'Expanda o estádio para 60.000 lugares', unlocked: false }
-  ]);
-
   const [teams, setTeams] = useState<Team[]>([
-    { name: 'Flamengo', points: 0, played: 0, division: 'A', stadiumCapacity: 50000 },
-    { name: 'Palmeiras', points: 0, played: 0, division: 'A', stadiumCapacity: 45000 },
-    { name: 'São Paulo', points: 0, played: 0, division: 'A', stadiumCapacity: 48000 },
-    { name: 'Corinthians', points: 0, played: 0, division: 'A', stadiumCapacity: 47000 },
+    { id: 't1', name: 'Flamengo', points: 0, played: 0, division: 'A', stadiumCapacity: 50000 },
+    { id: 't2', name: 'Palmeiras', points: 0, played: 0, division: 'A', stadiumCapacity: 45000 },
+    { id: 't3', name: 'São Paulo', points: 0, played: 0, division: 'A', stadiumCapacity: 48000 },
+    { id: 't4', name: 'Corinthians', points: 0, played: 0, division: 'A', stadiumCapacity: 47000 },
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
@@ -95,7 +89,7 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_pro_max');
+    const savedData = localStorage.getItem('brasfoot_save_dev_pro');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -107,7 +101,6 @@ export default function App() {
         if (parsed.teams) setTeams(parsed.teams);
         if (parsed.squad) setSquad(parsed.squad);
         if (parsed.history) setHistory(parsed.history);
-        if (parsed.achievements) setAchievements(parsed.achievements);
         if (parsed.myTeam) setScreen('dashboard');
       } catch (e) {
         console.error("Erro ao carregar save", e);
@@ -116,59 +109,28 @@ export default function App() {
   }, []);
 
   const saveGame = () => {
-    const dataToSave = { myTeam, money, managerReputation, round, seasonCount, teams, squad, history, achievements };
-    localStorage.setItem('brasfoot_save_pro_max', JSON.stringify(dataToSave));
+    const dataToSave = { myTeam, money, managerReputation, round, seasonCount, teams, squad, history };
+    localStorage.setItem('brasfoot_save_dev_pro', JSON.stringify(dataToSave));
   };
 
-  const unlockAchievement = (id: string) => {
-    setAchievements(prev => prev.map(a => a.id === id ? { ...a, unlocked: true } : a));
+  const exportSaveJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ myTeam, money, teams, squad, history }));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `brasfoot_save_s${seasonCount}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const watchAdReward = () => {
+    alert("📺 [AdMob Mock] Vídeo de Anúncio Exibido com Sucesso!");
+    setMoney(money + 5000000);
+    setNews([`📺 MONETIZAÇÃO: Recompensa de anúncio recebida (+R$ 5.0M)!`, ...news]);
+    saveGame();
   };
 
   const calculatePayroll = () => squad.reduce((total, p) => total + p.salary, 0);
-
-  const upgradeStadium = () => {
-    const cost = 12000000;
-    if (money < cost) {
-      alert('Você precisa de R$ 12.0M para ampliar o estádio!');
-      return;
-    }
-    const newMoney = money - cost;
-    setMoney(newMoney);
-    const updatedTeams = teams.map(t => t.name === myTeam ? { ...t, stadiumCapacity: t.stadiumCapacity + 10000 } : t);
-    setTeams(updatedTeams);
-    setNews([`🏟️ ESTÁDIO: Ampliação concluída! +10.000 lugares adicionados.`, ...news]);
-    
-    const myCap = updatedTeams.find(t => t.name === myTeam)?.stadiumCapacity || 0;
-    if (myCap >= 60000) unlockAchievement('stadium_master');
-    saveGame();
-  };
-
-  const scoutNewTalent = () => {
-    const cost = 5000000;
-    if (money < cost) {
-      alert('Você precisa de R$ 5.0M para enviar a equipe de olheiros!');
-      return;
-    }
-    setMoney(money - cost);
-    const newPlayer: Player = {
-      id: Date.now(),
-      name: `Joia ${Math.floor(Math.random() * 900 + 100)}`,
-      pos: ['GOL', 'DEF', 'MEI', 'ATA'][Math.floor(Math.random() * 4)] as 'GOL' | 'DEF' | 'MEI' | 'ATA',
-      overall: Math.floor(Math.random() * 8 + 78),
-      energy: 100,
-      morale: 90,
-      value: Math.floor(Math.random() * 8000000 + 5000000),
-      salary: 180000,
-      goals: 0,
-      injured: false,
-      yellowCards: 0,
-      suspended: false,
-      age: 18
-    };
-    setMarket([newPlayer, ...market]);
-    setNews([`🔍 OLHEIRO: Novo talento (${newPlayer.name}, OVR ${newPlayer.overall}) encontrado!`, ...news]);
-    saveGame();
-  };
 
   const simulateRound = () => {
     if (round >= 6) {
@@ -178,30 +140,18 @@ export default function App() {
       const userRank = userIndex + 1;
 
       let reward = 5000000;
-      if (userRank === 1) {
-        reward = 30000000;
-        setManagerReputation(prev => Math.min(100, prev + 15));
-      } else if (userRank === 2) {
-        reward = 20000000;
-        setManagerReputation(prev => Math.min(100, prev + 8));
-      } else {
-        reward = 12000000;
-      }
+      if (userRank === 1) reward = 30000000;
+      else if (userRank === 2) reward = 20000000;
+      else reward = 12000000;
 
       const bestPlayer = [...squad].sort((a, b) => b.goals - a.goals)[0]?.name || 'Pedro';
 
-      setLastReward(reward);
-      const newMoney = money + reward;
-      setMoney(newMoney);
-      if (newMoney >= 80000000) unlockAchievement('rich');
-
+      setMoney(prev => prev + reward);
       const newHistory = [{ season: seasonCount, winner, userTeam: myTeam, userPoints, userRank, cupWinner, mvp: bestPlayer }, ...history];
       setHistory(newHistory);
       setScreen('champion');
 
-      localStorage.setItem('brasfoot_save_pro_max', JSON.stringify({
-        myTeam, money: newMoney, managerReputation, round, seasonCount, teams, squad, history: newHistory, achievements
-      }));
+      saveGame();
       return;
     }
 
@@ -209,177 +159,65 @@ export default function App() {
     const match1A = newTeams[0];
     const match1B = newTeams[1];
 
-    const tacticBonus = tactics === '4-3-3' ? 1 : 0;
-    const score1A = Math.floor(Math.random() * (4 + tacticBonus));
+    const score1A = Math.floor(Math.random() * 4);
     const score1B = Math.floor(Math.random() * 4);
 
     newTeams.forEach(t => t.played += 1);
 
-    if (score1A > score1B) {
-      match1A.points += 3;
-      if (match1A.name === myTeam) unlockAchievement('first_win');
-    } else if (score1B > score1A) {
-      match1B.points += 3;
-    } else {
-      match1A.points += 1;
-      match1B.points += 1;
-    }
+    if (score1A > score1B) match1A.points += 3;
+    else if (score1B > score1A) match1B.points += 3;
+    else { match1A.points += 1; match1B.points += 1; }
 
     newTeams.sort((a, b) => b.points - a.points);
     setTeams(newTeams);
 
-    let newNews = [...news];
-
     const userTeamData = teams.find(t => t.name === myTeam);
     const gateIncome = (userTeamData?.stadiumCapacity || 40000) * 60;
-    const netFinance = gateIncome + sponsorBonus - calculatePayroll();
+    setMoney(prev => prev + gateIncome + sponsorBonus - calculatePayroll());
 
-    setMoney(prev => prev + netFinance);
-
-    const updatedSquad = squad.map(p => {
-      let newGoals = p.goals;
-      let isInjured = p.injured;
-      let isSuspended = p.suspended;
-      let cards = p.yellowCards;
-
-      if (isInjured) isInjured = false;
-      if (isSuspended) { isSuspended = false; cards = 0; }
-
-      if (!isInjured && !isSuspended) {
-        if ((p.pos === 'ATA' || p.pos === 'MEI') && Math.random() > 0.35) newGoals += 1;
-        if (Math.random() < 0.2) {
-          cards += 1;
-          if (cards >= 2) {
-            isSuspended = true;
-            newNews.unshift(`🟨 CARTÃO: ${p.name} suspenso pelo 2º cartão amarelo!`);
-          }
-        }
-        if (Math.random() < 0.08) {
-          isInjured = true;
-          newNews.unshift(`🚑 LESÃO: ${p.name} desfalca a equipe por lesão.`);
-        }
-      }
-
-      return { 
-        ...p, 
-        goals: newGoals, 
-        injured: isInjured, 
-        suspended: isSuspended, 
-        yellowCards: cards,
-        energy: isInjured ? 50 : Math.max(30, p.energy - Math.floor(Math.random() * 8 + 4)) 
-      };
-    });
-
-    setSquad(updatedSquad);
-    setNews(newNews);
     setRound(round + 1);
     saveGame();
   };
 
-  const simulateCupMatch = () => {
-    if (cupPhase === 'Encerrada') return;
-
-    if (cupPhase === 'Semifinal') {
-      const winner = Math.random() > 0.4 ? myTeam : 'Palmeiras';
-      if (winner === myTeam) {
-        setCupPhase('Final');
-        setNews([`🏆 COPA: O ${myTeam} venceu a Semifinal e avançou para a Grande Final!`, ...news]);
-      } else {
-        setCupPhase('Encerrada');
-        setCupWinner('Palmeiras');
-        setNews([`❌ COPA: O ${myTeam} foi eliminado na Semifinal.`, ...news]);
-      }
-    } else if (cupPhase === 'Final') {
-      const winner = Math.random() > 0.5 ? myTeam : 'São Paulo';
-      setCupPhase('Encerrada');
-      setCupWinner(winner);
-      if (winner === myTeam) {
-        setMoney(money + 15000000);
-        unlockAchievement('cup_champ');
-        setNews([`🏆 CAMPEÃO DA COPA! O ${myTeam} conquistou o título e faturou R$ 15.0M!`, ...news]);
-      } else {
-        setNews([`🥈 VICE-CAMPEÃO: O ${myTeam} ficou em 2º lugar na Copa.`, ...news]);
-      }
-    }
-    saveGame();
-  };
-
-  const trainSquad = () => {
-    if (money < 1500000) {
-      alert('Você precisa de R$ 1.5M para o treino!');
-      return;
-    }
-    setMoney(money - 1500000);
-    setSquad(squad.map(p => ({
-      ...p,
-      energy: Math.min(100, p.energy + 30),
-      morale: Math.min(100, p.morale + 10),
-      overall: Math.random() > 0.5 ? p.overall + 1 : p.overall
-    })));
-    setNews([`🏋️ TREINO: Elenco fisicamente recuperado e com moral elevado!`, ...news]);
-    saveGame();
-  };
-
-  const buyPlayer = (player: Player) => {
-    if (money < player.value) {
-      alert('Saldo insuficiente!');
-      return;
-    }
-    setMoney(money - player.value);
-    setSquad([...squad, player]);
-    setMarket(market.filter(p => p.id !== player.id));
-    setNews([`🤝 CONTRATAÇÃO: ${player.name} assinou com o ${myTeam}!`, ...news]);
-    saveGame();
-  };
-
-  const sellPlayer = (player: Player) => {
-    if (squad.length <= 11) {
-      alert('Seu elenco precisa ter no mínimo 11 jogadores!');
-      return;
-    }
-    setMoney(money + player.value);
-    setSquad(squad.filter(p => p.id !== player.id));
-    setMarket([...market, player]);
-    setNews([`💰 VENDA: ${player.name} foi vendido por R$ ${(player.value / 1000000).toFixed(1)}M.`, ...news]);
-    saveGame();
-  };
-
-  const resetForNextSeason = () => {
-    setRound(1);
-    setSeasonCount(seasonCount + 1);
-    setCupPhase('Semifinal');
-    setCupWinner('Em andamento');
-    setTeams(teams.map(t => ({ ...t, points: 0, played: 0 })));
-    setSquad(squad.map(p => ({ ...p, energy: 100, morale: 90, goals: 0, injured: false, suspended: false, yellowCards: 0 })));
-    setScreen('dashboard');
-    saveGame();
-  };
-
-  const resetAllData = () => {
-    if (confirm('Deseja apagar todo o progresso do jogo?')) {
-      localStorage.removeItem('brasfoot_save_pro_max');
-      window.location.reload();
-    }
-  };
-
-  const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
-  const currentStadium = teams.find(t => t.name === myTeam)?.stadiumCapacity || 40000;
-  const filteredMarket = marketFilter === 'ALL' ? market : market.filter(p => p.pos === marketFilter);
-  const sortedScorers = [...squad].sort((a, b) => b.goals - a.goals);
-
   return (
     <div style={{ padding: '16px', color: '#fff', minHeight: '100vh', background: '#0f172a', fontFamily: 'sans-serif' }}>
       <header style={{ textAlign: 'center', marginBottom: '16px' }}>
-        <h1 style={{ fontSize: '22px', margin: 0 }}>⚽ Brasfoot NextGen Pro</h1>
-        <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Simulador Profissional de Futebol</p>
+        <h1 style={{ fontSize: '20px', margin: 0 }}>⚽ {APP_CONFIG.appName}</h1>
+        <span style={{ background: '#334155', color: '#38bdf8', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold' }}>
+          BUILD {APP_CONFIG.version}
+        </span>
       </header>
 
       {screen === 'menu' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-          <h2>Novo Jogo</h2>
-          <p style={{ color: '#cbd5e1', marginBottom: '20px' }}>Inicie sua carreira profissional e domine a Liga e a Copa.</p>
-          <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '16px' }}>
-            Iniciar Carreira
+          <h2>Carreira Profissional</h2>
+          <p style={{ color: '#cbd5e1', marginBottom: '20px', fontSize: '13px' }}>
+            Template pronto para revenda, personalização e publicação na Google Play Store.
+          </p>
+          <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px', marginBottom: '10px' }}>
+            Iniciar Novo Jogo
+          </button>
+          <button onClick={() => setScreen('dev_panel')} style={{ background: '#475569', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '13px' }}>
+            🛠️ Painel do Desenvolvedor (Config/Save)
+          </button>
+        </div>
+      )}
+
+      {screen === 'dev_panel' && (
+        <div style={{ background: '#1e293b', padding: '20px', borderRadius: '12px' }}>
+          <h3 style={{ marginTop: 0 }}>🛠️ Opções do Desenvolvedor</h3>
+          <p style={{ color: '#94a3b8', fontSize: '12px' }}>Ações prontas para testes de QA e integração de clientes:</p>
+          
+          <button onClick={exportSaveJSON} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', fontWeight: 'bold', width: '100%', marginBottom: '10px' }}>
+            💾 Exportar Arquivo de Save (.JSON)
+          </button>
+          
+          <button onClick={() => { localStorage.removeItem('brasfoot_save_dev_pro'); window.location.reload(); }} style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', fontWeight: 'bold', width: '100%', marginBottom: '10px' }}>
+            🔥 Limpar Cache do App (Reset)
+          </button>
+
+          <button onClick={() => setScreen('menu')} style={{ background: '#334155', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', width: '100%' }}>
+            Voltar ao Menu
           </button>
         </div>
       )}
@@ -389,7 +227,7 @@ export default function App() {
           <h2 style={{ textAlign: 'center', marginTop: 0 }}>Escolha seu Clube</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '20px 0' }}>
             {teams.map((t) => (
-              <button key={t.name} onClick={() => { setMyTeam(t.name); setScreen('dashboard'); saveGame(); }} style={{ background: '#334155', color: '#fff', border: '1px solid #475569', padding: '14px', borderRadius: '8px', fontWeight: 'bold', textAlign: 'left', fontSize: '15px' }}>
+              <button key={t.id} onClick={() => { setMyTeam(t.name); setScreen('dashboard'); saveGame(); }} style={{ background: '#334155', color: '#fff', border: '1px solid #475569', padding: '14px', borderRadius: '8px', fontWeight: 'bold', textAlign: 'left', fontSize: '15px' }}>
                 ⚽ {t.name} (Série {t.division})
               </button>
             ))}
@@ -399,15 +237,10 @@ export default function App() {
 
       {screen === 'champion' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '26px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
-          <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão da Liga: {teams[0].name}</p>
-          <p style={{ color: '#eab308', fontWeight: 'bold', fontSize: '16px' }}>Campeão da Copa: {cupWinner}</p>
+          <h1 style={{ fontSize: '24px', margin: '0 0 8px 0' }}>🏆 Fim da Temporada {seasonCount}!</h1>
+          <p style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px' }}>Campeão: {teams[0].name}</p>
           
-          <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '12px 0 4px 0' }}>
-            Seu time encerrou a Liga com {userPoints} {userPoints === 1 ? 'ponto' : 'pontos'}.
-          </p>
-
-          <button onClick={resetForNextSeason} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '14px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px', marginTop: '16px' }}>
+          <button onClick={() => { setRound(1); setSeasonCount(seasonCount + 1); setScreen('dashboard'); }} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '14px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px', marginTop: '16px' }}>
             Iniciar Temporada {seasonCount + 1}
           </button>
         </div>
@@ -423,25 +256,17 @@ export default function App() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold', display: 'block' }}>SALDO</span>
-                <strong style={{ color: '#4ade80', fontSize: '16px' }}>R$ {(money / 1000000).toFixed(1)}M</strong>
+                <strong style={{ color: '#4ade80', fontSize: '16px' }}>{APP_CONFIG.currencySymbol} {(money / 1000000).toFixed(1)}M</strong>
               </div>
-            </div>
-            <div style={{ fontSize: '12px', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Reputação Técnico: <strong style={{ color: '#eab308' }}>{managerReputation}/100 ⭐</strong></span>
-              <span>Rodada Liga: <strong>{round}/6</strong></span>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '4px', overflowX: 'auto' }}>
             <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tabela</button>
-            <button onClick={() => setTab('cup')} style={{ flex: 1, background: tab === 'cup' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Copa 🏆</button>
             <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
-            <button onClick={() => setTab('scout')} style={{ flex: 1, background: tab === 'scout' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Olheiro 🔍</button>
-            <button onClick={() => setTab('trophies')} style={{ flex: 1, background: tab === 'trophies' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Troféus 🎖️</button>
+            <button onClick={() => setTab('monetization')} style={{ flex: 1, background: tab === 'monetization' ? '#eab308' : '#334155', color: tab === 'monetization' ? '#000' : '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>AdMob 📺</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
-            <button onClick={() => setTab('stadium')} style={{ flex: 1, background: tab === 'stadium' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Estádio</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
-            <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Galeria</button>
           </div>
 
           {tab === 'league' && (
@@ -462,7 +287,7 @@ export default function App() {
                   </thead>
                   <tbody>
                     {teams.map((t) => (
-                      <tr key={t.name} style={{ borderBottom: '1px solid #334155', color: t.name === myTeam ? '#4ade80' : '#fff' }}>
+                      <tr key={t.id} style={{ borderBottom: '1px solid #334155', color: t.name === myTeam ? '#4ade80' : '#fff' }}>
                         <td style={{ padding: '8px 0' }}>{t.name}</td>
                         <td>{t.played}</td>
                         <td>{t.points}</td>
@@ -474,90 +299,28 @@ export default function App() {
             </>
           )}
 
-          {tab === 'trophies' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Sala de Conquistas & Troféus</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {achievements.map((a) => (
-                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: '#0f172a', borderRadius: '8px', border: a.unlocked ? '1px solid #eab308' : '1px solid #334155' }}>
-                    <div style={{ fontSize: '24px' }}>{a.unlocked ? '🏆' : '🔒'}</div>
-                    <div>
-                      <strong style={{ color: a.unlocked ? '#eab308' : '#94a3b8', fontSize: '14px' }}>{a.title}</strong>
-                      <div style={{ color: '#cbd5e1', fontSize: '12px' }}>{a.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {tab === 'scout' && (
+          {tab === 'monetization' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Equipe de Olheiros</h3>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Módulo de Anúncios (AdMob Integration)</h3>
               <p style={{ color: '#cbd5e1', fontSize: '13px' }}>
-                Envie olheiros para procurar novos talentos ocultos no mercado internacional.
+                Testador do componente de Vídeo Premiado. Permite que o jogador receba bônus em dinheiro assistindo a um vídeo.
               </p>
-              <button onClick={scoutNewTalent} style={{ background: '#eab308', color: '#000', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', width: '100%', marginTop: '10px' }}>
-                Buscar Novo Talento (R$ 5.0M)
-              </button>
-            </div>
-          )}
-
-          {tab === 'cup' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Copa Nacional Mata-Mata</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '14px' }}>Fase Atual: <strong style={{ color: '#eab308' }}>{cupPhase}</strong></p>
-              
-              {cupPhase !== 'Encerrada' ? (
-                <button onClick={simulateCupMatch} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%', marginTop: '10px' }}>
-                  Disputar Partida da Copa
-                </button>
-              ) : (
-                <p style={{ color: '#4ade80', fontWeight: 'bold' }}>Campeão da Copa: {cupWinner}</p>
-              )}
-            </div>
-          )}
-
-          {tab === 'stadium' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Estádio & Infraestrutura</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '13px' }}>
-                Capacidade Atual: <strong>{currentStadium.toLocaleString()} torcedores</strong>
-              </p>
-              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '16px' }}>
-                Renda estimada por jogo em casa: R$ {((currentStadium * 60) / 1000000).toFixed(2)}M
-              </p>
-              <button onClick={upgradeStadium} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '14px' }}>
-                Ampliar +10.000 Lugares (R$ 12.0M)
+              <button onClick={watchAdReward} style={{ background: '#eab308', color: '#000', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '14px', marginTop: '10px' }}>
+                📺 Assistir Anúncio e Ganhar +R$ 5.0M
               </button>
             </div>
           )}
 
           {tab === 'squad' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Elenco ({squad.length})</h3>
-                <button onClick={trainSquad} style={{ background: '#eab308', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
-                  🏋️ Treinar (R$ 1.5M)
-                </button>
-              </div>
-
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Elenco ({squad.length})</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {squad.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <strong>{p.name}</strong>
-                        <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos}, {p.age}a)</span>
-                        {p.injured && <span style={{ background: '#ef4444', color: '#fff', fontSize: '10px', padding: '1px 4px', borderRadius: '4px' }}>🏥 LESIONADO</span>}
-                      </div>
-                      <div style={{ color: '#60a5fa', fontSize: '12px', marginTop: '2px' }}>
-                        OVR: {p.overall} | ⚡ {p.energy}% | 😄 {p.morale}%
-                      </div>
+                      <strong>{p.name}</strong> <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
+                      <div style={{ color: '#60a5fa', fontSize: '12px' }}>OVR: {p.overall} | ⚡ {p.energy}%</div>
                     </div>
-                    <button onClick={() => sellPlayer(p)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>
-                      Vender
-                    </button>
                   </div>
                 ))}
               </div>
@@ -568,13 +331,11 @@ export default function App() {
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
               <h3 style={{ marginTop: 0, fontSize: '16px' }}>Mercado de Transferências</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {filteredMarket.map((p) => (
+                {market.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
                     <div>
                       <strong>{p.name}</strong> ({p.pos}) - OVR: {p.overall}
-                      <div style={{ color: '#4ade80', fontWeight: 'bold' }}>R$ {(p.value / 1000000).toFixed(1)}M</div>
                     </div>
-                    <button onClick={() => buyPlayer(p)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold' }}>Comprar</button>
                   </div>
                 ))}
               </div>
@@ -583,34 +344,12 @@ export default function App() {
 
           {tab === 'news' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Feed de Notícias</h3>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Notícias</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {news.map((item, i) => (
                   <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px', color: '#cbd5e1' }}>{item}</div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {tab === 'history' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Galeria de Campeões</h3>
-              {history.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: '13px' }}>Nenhum histórico registrado ainda.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {history.map((h, i) => (
-                    <div key={i} style={{ padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
-                      <div style={{ fontWeight: 'bold', color: '#eab308' }}>🏆 Temp. {h.season}: Liga ({h.winner}) | Copa ({h.cupWinner})</div>
-                      <div style={{ color: '#cbd5e1', fontSize: '12px' }}>Seu time ({h.userTeam}): {h.userRank}º Lugar ({h.userPoints} pts)</div>
-                      <div style={{ color: '#60a5fa', fontSize: '11px' }}>⭐ Craque do Ano: {h.mvp || 'N/A'}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <button onClick={resetAllData} style={{ marginTop: '20px', background: '#dc2626', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold', width: '100%', fontSize: '12px' }}>
-                Resetar Progresso
-              </button>
             </div>
           )}
         </div>
