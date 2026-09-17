@@ -4,6 +4,7 @@ interface Team {
   name: string;
   points: number;
   played: number;
+  division: 'A' | 'B';
   stadiumCapacity: number;
 }
 
@@ -18,6 +19,7 @@ interface Player {
   injured: boolean;
   yellowCards: number;
   suspended: boolean;
+  age: number;
 }
 
 interface HistoryEntry {
@@ -30,55 +32,62 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'topscorers' | 'stadium' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'youth' | 'finance' | 'topscorers' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
   const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
+  const [loan, setLoan] = useState<number>(0);
   const [logs, setLogs] = useState<string[]>([]);
-  const [news, setNews] = useState<string[]>(['🚀 Bem-vindo ao Brasfoot NextGen Pro! Monte seu esquadrão e busque a glória!']);
+  const [news, setNews] = useState<string[]>(['🚀 Bem-vindo à nova versão Brasfoot NextGen Master!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [lastReward, setLastReward] = useState<number>(0);
   const [marketFilter, setMarketFilter] = useState<string>('ALL');
 
   const [teams, setTeams] = useState<Team[]>([
-    { name: 'Flamengo', points: 0, played: 0, stadiumCapacity: 50000 },
-    { name: 'Palmeiras', points: 0, played: 0, stadiumCapacity: 45000 },
-    { name: 'São Paulo', points: 0, played: 0, stadiumCapacity: 48000 },
-    { name: 'Corinthians', points: 0, played: 0, stadiumCapacity: 47000 }
+    { name: 'Flamengo', points: 0, played: 0, division: 'A', stadiumCapacity: 50000 },
+    { name: 'Palmeiras', points: 0, played: 0, division: 'A', stadiumCapacity: 45000 },
+    { name: 'São Paulo', points: 0, played: 0, division: 'A', stadiumCapacity: 48000 },
+    { name: 'Corinthians', points: 0, played: 0, division: 'A', stadiumCapacity: 47000 },
+    { name: 'Grêmio', points: 0, played: 0, division: 'B', stadiumCapacity: 42000 },
+    { name: 'Internacional', points: 0, played: 0, division: 'B', stadiumCapacity: 43000 },
   ]);
 
   const [squad, setSquad] = useState<Player[]>([
-    { id: 1, name: 'Rossi', pos: 'GOL', overall: 81, energy: 100, value: 6000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 2, name: 'Léo Ortiz', pos: 'DEF', overall: 82, energy: 98, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 3, name: 'Léo Pereira', pos: 'DEF', overall: 80, energy: 95, value: 9000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 4, name: 'Ayrton Lucas', pos: 'DEF', overall: 79, energy: 92, value: 8000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 5, name: 'Varela', pos: 'DEF', overall: 77, energy: 94, value: 5000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 6, name: 'Pulgar', pos: 'MEI', overall: 81, energy: 90, value: 10000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 7, name: 'De La Cruz', pos: 'MEI', overall: 85, energy: 88, value: 18000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 8, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 86, value: 22000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 9, name: 'Gerson', pos: 'MEI', overall: 84, energy: 89, value: 16000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 10, name: 'Pedro', pos: 'ATA', overall: 85, energy: 91, value: 25000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 11, name: 'Everton Ceballos', pos: 'ATA', overall: 82, energy: 90, value: 14000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 12, name: 'Bruno Henrique', pos: 'ATA', overall: 81, energy: 85, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 1, name: 'Rossi', pos: 'GOL', overall: 81, energy: 100, value: 6000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
+    { id: 2, name: 'Léo Ortiz', pos: 'DEF', overall: 82, energy: 98, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 3, name: 'Léo Pereira', pos: 'DEF', overall: 80, energy: 95, value: 9000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 28 },
+    { id: 4, name: 'Ayrton Lucas', pos: 'DEF', overall: 79, energy: 92, value: 8000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 5, name: 'Pulgar', pos: 'MEI', overall: 81, energy: 90, value: 10000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
+    { id: 6, name: 'De La Cruz', pos: 'MEI', overall: 85, energy: 88, value: 18000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 7, name: 'Arrascaeta', pos: 'MEI', overall: 86, energy: 86, value: 22000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 29 },
+    { id: 8, name: 'Gerson', pos: 'MEI', overall: 84, energy: 89, value: 16000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 9, name: 'Pedro', pos: 'ATA', overall: 85, energy: 91, value: 25000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 10, name: 'Everton Ceballos', pos: 'ATA', overall: 82, energy: 90, value: 14000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 27 },
+    { id: 11, name: 'Bruno Henrique', pos: 'ATA', overall: 81, energy: 85, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 33 },
+  ]);
+
+  const [youthAcademy, setYouthAcademy] = useState<Player[]>([
+    { id: 201, name: 'Mateusão (Base)', pos: 'ATA', overall: 72, energy: 100, value: 4000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 17 },
+    { id: 202, name: 'Lorran (Base)', pos: 'MEI', overall: 74, energy: 100, value: 6000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 18 },
   ]);
 
   const [market, setMarket] = useState<Player[]>([
-    { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, value: 30000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, value: 12000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, value: 4000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
-    { id: 105, name: 'Gustavo Gómez', pos: 'DEF', overall: 84, energy: 100, value: 13000000, goals: 0, injured: false, yellowCards: 0, suspended: false },
+    { id: 101, name: 'Endrick', pos: 'ATA', overall: 84, energy: 100, value: 30000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 18 },
+    { id: 102, name: 'Lucas Moura', pos: 'MEI', overall: 82, energy: 100, value: 12000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 31 },
+    { id: 103, name: 'Garro', pos: 'MEI', overall: 81, energy: 100, value: 11000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 26 },
+    { id: 104, name: 'Cássio', pos: 'GOL', overall: 80, energy: 100, value: 4000000, goals: 0, injured: false, yellowCards: 0, suspended: false, age: 36 },
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_v2');
+    const savedData = localStorage.getItem('brasfoot_save_master');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
         setMyTeam(parsed.myTeam || '');
         setMoney(parsed.money || 50000000);
+        setLoan(parsed.loan || 0);
         setRound(parsed.round || 1);
         setSeasonCount(parsed.seasonCount || 1);
         if (parsed.teams) setTeams(parsed.teams);
@@ -92,8 +101,8 @@ export default function App() {
   }, []);
 
   const saveGame = () => {
-    const dataToSave = { myTeam, money, round, seasonCount, teams, squad, history };
-    localStorage.setItem('brasfoot_save_v2', JSON.stringify(dataToSave));
+    const dataToSave = { myTeam, money, loan, round, seasonCount, teams, squad, history };
+    localStorage.setItem('brasfoot_save_master', JSON.stringify(dataToSave));
   };
 
   const simulateRound = () => {
@@ -104,9 +113,9 @@ export default function App() {
       const userRank = userIndex + 1;
 
       let reward = 5000000;
-      if (userRank === 1) reward = 25000000;
-      else if (userRank === 2) reward = 15000000;
-      else if (userRank === 3) reward = 10000000;
+      if (userRank === 1) reward = 30000000;
+      else if (userRank === 2) reward = 20000000;
+      else if (userRank === 3) reward = 12000000;
 
       setLastReward(reward);
       setMoney(prev => prev + reward);
@@ -115,17 +124,19 @@ export default function App() {
       setHistory(newHistory);
       setScreen('champion');
 
-      localStorage.setItem('brasfoot_save_v2', JSON.stringify({
-        myTeam, money: money + reward, round, seasonCount, teams, squad, history: newHistory
+      localStorage.setItem('brasfoot_save_master', JSON.stringify({
+        myTeam, money: money + reward, loan, round, seasonCount, teams, squad, history: newHistory
       }));
       return;
     }
 
     const newTeams = [...teams];
-    const match1A = newTeams[0];
-    const match1B = newTeams[1];
-    const match2A = newTeams[2];
-    const match2B = newTeams[3];
+    const seriesA = newTeams.filter(t => t.division === 'A');
+
+    const match1A = seriesA[0];
+    const match1B = seriesA[1];
+    const match2A = seriesA[2];
+    const match2B = seriesA[3];
 
     const tacticBonus = tactics === '4-3-3' ? 1 : 0;
     const score1A = Math.floor(Math.random() * (4 + tacticBonus));
@@ -156,7 +167,7 @@ export default function App() {
 
       if (isInjured) {
         isInjured = false;
-        newNews.unshift(`🏥 MÉDICO: ${p.name} se recuperou totalmente de lesão!`);
+        newNews.unshift(`🏥 DEPARTAMENTO MÉDICO: ${p.name} se recuperou!`);
       }
       if (isSuspended) {
         isSuspended = false;
@@ -172,13 +183,13 @@ export default function App() {
           cards += 1;
           if (cards >= 2) {
             isSuspended = true;
-            newNews.unshift(`🟨 CARTÃO: ${p.name} levou 2º amarelo e está suspenso.`);
+            newNews.unshift(`🟨 SUSPENSÃO: ${p.name} levou 2º cartão e desfalca na próxima rodada.`);
           }
         }
 
         if (Math.random() < 0.08) {
           isInjured = true;
-          newNews.unshift(`🚑 LESÃO: ${p.name} sofreu distensão muscular.`);
+          newNews.unshift(`🚑 LESÃO: ${p.name} sentiu dores e foi pro DM.`);
         }
       }
 
@@ -193,7 +204,7 @@ export default function App() {
     });
 
     const userTeamData = teams.find(t => t.name === myTeam);
-    const gateIncome = (userTeamData?.stadiumCapacity || 40000) * 50;
+    const gateIncome = (userTeamData?.stadiumCapacity || 40000) * 60;
 
     setSquad(updatedSquad);
     setNews(newNews);
@@ -208,31 +219,47 @@ export default function App() {
     saveGame();
   };
 
-  const trainSquad = () => {
-    if (money < 1500000) {
-      alert('Você precisa de R$ 1.5M para o treino intensivo!');
-      return;
-    }
-    setMoney(money - 1500000);
-    const recoveredSquad = squad.map(p => ({
-      ...p,
-      energy: Math.min(100, p.energy + 30),
-      overall: Math.random() > 0.5 ? p.overall + 1 : p.overall
-    }));
-    setSquad(recoveredSquad);
-    setNews([`🏋️ TREINAMENTO: O elenco evoluiu o preparo físico e o entrosamento!`, ...news]);
+  const promoteYouth = (player: Player) => {
+    setSquad([...squad, player]);
+    setYouthAcademy(youthAcademy.filter(p => p.id !== player.id));
+    setNews([`🌟 BASE: ${player.name} foi promovido ao time principal!`, ...news]);
     saveGame();
   };
 
-  const upgradeStadium = () => {
-    const cost = 10000000;
-    if (money < cost) {
-      alert('Você precisa de R$ 10.0M para ampliar o estádio!');
+  const takeLoan = () => {
+    if (loan > 0) {
+      alert('Você já possui um empréstimo ativo!');
       return;
     }
-    setMoney(money - cost);
-    setTeams(teams.map(t => t.name === myTeam ? { ...t, stadiumCapacity: t.stadiumCapacity + 10000 } : t));
-    setNews([`🏟️ OBRAS: O estádio do ${myTeam} foi ampliado em +10.000 lugares!`, ...news]);
+    setMoney(money + 15000000);
+    setLoan(18000000);
+    setNews([`🏦 FINANÇAS: O clube pegou R$ 15.0M emprestados com o banco.`, ...news]);
+    saveGame();
+  };
+
+  const payLoan = () => {
+    if (money < loan) {
+      alert('Saldo insuficiente para quitar o empréstimo!');
+      return;
+    }
+    setMoney(money - loan);
+    setLoan(0);
+    setNews([`✅ FINANÇAS: O clube quitou o empréstimo bancário.`, ...news]);
+    saveGame();
+  };
+
+  const trainSquad = () => {
+    if (money < 1500000) {
+      alert('Você precisa de R$ 1.5M para o treino!');
+      return;
+    }
+    setMoney(money - 1500000);
+    setSquad(squad.map(p => ({
+      ...p,
+      energy: Math.min(100, p.energy + 30),
+      overall: Math.random() > 0.5 ? p.overall + 1 : p.overall
+    })));
+    setNews([`🏋️ TREINO: O elenco aprimorou o preparo físico!`, ...news]);
     saveGame();
   };
 
@@ -253,7 +280,7 @@ export default function App() {
     setMoney(money - player.value);
     setSquad([...squad, player]);
     setMarket(market.filter(p => p.id !== player.id));
-    setNews([`🤝 REFORÇO: ${player.name} fechou contrato com o ${myTeam}!`, ...news]);
+    setNews([`🤝 REFORÇO: ${player.name} assinou com o ${myTeam}!`, ...news]);
     saveGame();
   };
 
@@ -265,35 +292,34 @@ export default function App() {
     setMoney(money + player.value);
     setSquad(squad.filter(p => p.id !== player.id));
     setMarket([...market, player]);
-    setNews([`💰 TRANSFERÊNCIA: ${player.name} foi negociado por R$ ${(player.value / 1000000).toFixed(1)}M.`, ...news]);
+    setNews([`💰 VENDA: ${player.name} foi vendido por R$ ${(player.value / 1000000).toFixed(1)}M.`, ...news]);
     saveGame();
   };
 
   const resetAllData = () => {
     if (confirm('Deseja apagar todo o progresso do jogo?')) {
-      localStorage.removeItem('brasfoot_save_v2');
+      localStorage.removeItem('brasfoot_save_master');
       window.location.reload();
     }
   };
 
   const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
-  const currentStadium = teams.find(t => t.name === myTeam)?.stadiumCapacity || 40000;
   const filteredMarket = marketFilter === 'ALL' ? market : market.filter(p => p.pos === marketFilter);
   const sortedScorers = [...squad].sort((a, b) => b.goals - a.goals);
 
   return (
     <div style={{ padding: '16px', color: '#fff', minHeight: '100vh', background: '#0f172a', fontFamily: 'sans-serif' }}>
       <header style={{ textAlign: 'center', marginBottom: '16px' }}>
-        <h1 style={{ fontSize: '22px', margin: 0 }}>⚽ Brasfoot NextGen Pro</h1>
-        <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Simulador Profissional de Gestão</p>
+        <h1 style={{ fontSize: '22px', margin: 0 }}>⚽ Brasfoot NextGen Master</h1>
+        <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Simulador Completo de Futebol</p>
       </header>
 
       {screen === 'menu' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
           <h2>Novo Jogo</h2>
-          <p style={{ color: '#cbd5e1', marginBottom: '20px' }}>Assuma o comando técnico e financeiro do seu clube.</p>
+          <p style={{ color: '#cbd5e1', marginBottom: '20px' }}>Inicie sua jornada no simulador de futebol definitivo.</p>
           <button onClick={() => setScreen('select')} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '16px' }}>
-            Iniciar Carreira
+            Iniciar Carreira Pro
           </button>
         </div>
       )}
@@ -304,7 +330,7 @@ export default function App() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '20px 0' }}>
             {teams.map((t) => (
               <button key={t.name} onClick={() => { setMyTeam(t.name); setScreen('dashboard'); saveGame(); }} style={{ background: '#334155', color: '#fff', border: '1px solid #475569', padding: '14px', borderRadius: '8px', fontWeight: 'bold', textAlign: 'left', fontSize: '15px' }}>
-                ⚽ {t.name} (Capacidade: {t.stadiumCapacity.toLocaleString()} pessoas)
+                ⚽ {t.name} (Série {t.division})
               </button>
             ))}
           </div>
@@ -320,7 +346,7 @@ export default function App() {
             Seu time encerrou com {userPoints} {userPoints === 1 ? 'ponto' : 'pontos'}.
           </p>
           <p style={{ color: '#eab308', fontWeight: 'bold', fontSize: '15px', marginBottom: '20px' }}>
-            💵 Premiação Oficial: +R$ {(lastReward / 1000000).toFixed(1)}M
+            💵 Premiação da Temporada: +R$ {(lastReward / 1000000).toFixed(1)}M
           </p>
 
           <button onClick={resetForNextSeason} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '14px 20px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '15px' }}>
@@ -352,8 +378,9 @@ export default function App() {
             <button onClick={() => setTab('league')} style={{ flex: 1, background: tab === 'league' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Tabela</button>
             <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
+            <button onClick={() => setTab('youth')} style={{ flex: 1, background: tab === 'youth' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Base</button>
+            <button onClick={() => setTab('finance')} style={{ flex: 1, background: tab === 'finance' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Banco</button>
             <button onClick={() => setTab('topscorers')} style={{ flex: 1, background: tab === 'topscorers' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Artilharia</button>
-            <button onClick={() => setTab('stadium')} style={{ flex: 1, background: tab === 'stadium' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Estádio</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
             <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Galeria</button>
           </div>
@@ -365,11 +392,12 @@ export default function App() {
               </button>
 
               <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-                <h3 style={{ marginTop: 0, fontSize: '16px' }}>Tabela de Classificação</h3>
+                <h3 style={{ marginTop: 0, fontSize: '16px' }}>Tabela da Liga</h3>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8' }}>
                       <th style={{ padding: '8px 0' }}>Clube</th>
+                      <th>Div</th>
                       <th>J</th>
                       <th>Pts</th>
                     </tr>
@@ -378,6 +406,7 @@ export default function App() {
                     {teams.map((t) => (
                       <tr key={t.name} style={{ borderBottom: '1px solid #334155', color: t.name === myTeam ? '#4ade80' : '#fff' }}>
                         <td style={{ padding: '8px 0' }}>{t.name}</td>
+                        <td style={{ color: '#94a3b8' }}>{t.division}</td>
                         <td>{t.played}</td>
                         <td>{t.points}</td>
                       </tr>
@@ -412,7 +441,7 @@ export default function App() {
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <strong>{p.name}</strong>
-                        <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos})</span>
+                        <span style={{ color: '#94a3b8', fontSize: '11px' }}>({p.pos}, {p.age} anos)</span>
                         {p.injured && <span style={{ background: '#ef4444', color: '#fff', fontSize: '10px', padding: '1px 4px', borderRadius: '4px' }}>🏥 LESIONADO</span>}
                         {p.suspended && <span style={{ background: '#eab308', color: '#000', fontSize: '10px', padding: '1px 4px', borderRadius: '4px' }}>🟨 SUSPENSO</span>}
                       </div>
@@ -429,10 +458,43 @@ export default function App() {
             </div>
           )}
 
+          {tab === 'youth' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Categorias de Base</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {youthAcademy.length === 0 ? (
+                  <p style={{ color: '#94a3b8', fontSize: '13px' }}>Nenhuma promessa disponível na base no momento.</p>
+                ) : (
+                  youthAcademy.map((p) => (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px', fontSize: '13px' }}>
+                      <div>
+                        <strong>{p.name}</strong> ({p.pos}) - OVR: {p.overall} | {p.age} anos
+                      </div>
+                      <button onClick={() => promoteYouth(p)} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold' }}>Promover</button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {tab === 'finance' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Operações Financeiras</h3>
+              <p style={{ fontSize: '13px', color: '#cbd5e1' }}>Saldo em Caixa: <strong>R$ {(money / 1000000).toFixed(1)}M</strong></p>
+              <p style={{ fontSize: '13px', color: '#f87171' }}>Empréstimo Ativo: <strong>R$ {(loan / 1000000).toFixed(1)}M</strong></p>
+
+              <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                <button onClick={takeLoan} style={{ flex: 1, background: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Pegar R$ 15M</button>
+                <button onClick={payLoan} style={{ flex: 1, background: '#22c55e', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px' }}>Quitar Dívida</button>
+              </div>
+            </div>
+          )}
+
           {tab === 'market' && (
             <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Mercado</h3>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Mercado de Transferências</h3>
                 <div style={{ display: 'flex', gap: '4px' }}>
                   {['ALL', 'GOL', 'DEF', 'MEI', 'ATA'].map(pos => (
                     <button key={pos} onClick={() => setMarketFilter(pos)} style={{ background: marketFilter === pos ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
@@ -452,21 +514,6 @@ export default function App() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {tab === 'stadium' && (
-            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
-              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Gestão de Estádio</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '13px' }}>
-                Capacidade Atual: <strong>{currentStadium.toLocaleString()} lugares</strong>
-              </p>
-              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '16px' }}>
-                Renda Estimada por Jogo: R$ {((currentStadium * 50) / 1000000).toFixed(2)}M
-              </p>
-              <button onClick={upgradeStadium} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '14px' }}>
-                Expandir +10.000 Lugares (R$ 10.0M)
-              </button>
             </div>
           )}
 
