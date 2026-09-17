@@ -34,19 +34,19 @@ interface HistoryEntry {
 
 export default function App() {
   const [screen, setScreen] = useState<'menu' | 'select' | 'dashboard' | 'champion'>('menu');
-  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'finance' | 'topscorers' | 'news' | 'history'>('league');
+  const [tab, setTab] = useState<'league' | 'squad' | 'market' | 'cup' | 'stadium' | 'finance' | 'topscorers' | 'news' | 'history'>('league');
   const [myTeam, setMyTeam] = useState<string>('');
   const [tactics, setTactics] = useState<string>('4-3-3');
   const [round, setRound] = useState<number>(1);
   const [seasonCount, setSeasonCount] = useState<number>(1);
   const [money, setMoney] = useState<number>(50000000);
   const [loan, setLoan] = useState<number>(0);
-  const [news, setNews] = useState<string[]>(['🚀 Brasfoot NextGen Pro: Nova temporada iniciada com disputas da Liga e Copa!']);
+  const [sponsorBonus, setSponsorBonus] = useState<number>(2000000);
+  const [news, setNews] = useState<string[]>(['🚀 Brasfoot NextGen Pro: Bem-vindo à nova temporada profissional!']);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [lastReward, setLastReward] = useState<number>(0);
   const [marketFilter, setMarketFilter] = useState<string>('ALL');
 
-  // Copa Mata-Mata Estado
   const [cupPhase, setCupPhase] = useState<'Semifinal' | 'Final' | 'Encerrada'>('Semifinal');
   const [cupWinner, setCupWinner] = useState<string>('Em andamento');
 
@@ -79,7 +79,7 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('brasfoot_save_ultra');
+    const savedData = localStorage.getItem('brasfoot_save_ultra_v2');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -100,11 +100,21 @@ export default function App() {
 
   const saveGame = () => {
     const dataToSave = { myTeam, money, loan, round, seasonCount, teams, squad, history };
-    localStorage.setItem('brasfoot_save_ultra', JSON.stringify(dataToSave));
+    localStorage.setItem('brasfoot_save_ultra_v2', JSON.stringify(dataToSave));
   };
 
-  const calculatePayroll = () => {
-    return squad.reduce((total, p) => total + p.salary, 0);
+  const calculatePayroll = () => squad.reduce((total, p) => total + p.salary, 0);
+
+  const upgradeStadium = () => {
+    const cost = 12000000;
+    if (money < cost) {
+      alert('Você precisa de R$ 12.0M para ampliar o estádio!');
+      return;
+    }
+    setMoney(money - cost);
+    setTeams(teams.map(t => t.name === myTeam ? { ...t, stadiumCapacity: t.stadiumCapacity + 10000 } : t));
+    setNews([`🏟️ ESTÁDIO: Ampliação concluída! +10.000 lugares adicionados.`, ...news]);
+    saveGame();
   };
 
   const simulateRound = () => {
@@ -126,7 +136,7 @@ export default function App() {
       setHistory(newHistory);
       setScreen('champion');
 
-      localStorage.setItem('brasfoot_save_ultra', JSON.stringify({
+      localStorage.setItem('brasfoot_save_ultra_v2', JSON.stringify({
         myTeam, money: money + reward, loan, round, seasonCount, teams, squad, history: newHistory
       }));
       return;
@@ -159,11 +169,10 @@ export default function App() {
 
     let newNews = [...news];
 
-    // Simulação de Desconto da Folha Salarial
-    const totalSalaries = calculatePayroll();
+    // Entrada de Bilheteria + Patrocínio - Folha Salarial
     const userTeamData = teams.find(t => t.name === myTeam);
     const gateIncome = (userTeamData?.stadiumCapacity || 40000) * 60;
-    const netFinance = gateIncome - totalSalaries;
+    const netFinance = gateIncome + sponsorBonus - calculatePayroll();
 
     setMoney(prev => prev + netFinance);
 
@@ -286,12 +295,13 @@ export default function App() {
 
   const resetAllData = () => {
     if (confirm('Deseja apagar todo o progresso do jogo?')) {
-      localStorage.removeItem('brasfoot_save_ultra');
+      localStorage.removeItem('brasfoot_save_ultra_v2');
       window.location.reload();
     }
   };
 
   const userPoints = teams.find(t => t.name === myTeam)?.points || 0;
+  const currentStadium = teams.find(t => t.name === myTeam)?.stadiumCapacity || 40000;
   const filteredMarket = marketFilter === 'ALL' ? market : market.filter(p => p.pos === marketFilter);
   const sortedScorers = [...squad].sort((a, b) => b.goals - a.goals);
 
@@ -365,6 +375,7 @@ export default function App() {
             <button onClick={() => setTab('cup')} style={{ flex: 1, background: tab === 'cup' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Copa 🏆</button>
             <button onClick={() => setTab('squad')} style={{ flex: 1, background: tab === 'squad' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Elenco</button>
             <button onClick={() => setTab('market')} style={{ flex: 1, background: tab === 'market' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Mercado</button>
+            <button onClick={() => setTab('stadium')} style={{ flex: 1, background: tab === 'stadium' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Estádio</button>
             <button onClick={() => setTab('topscorers')} style={{ flex: 1, background: tab === 'topscorers' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Artilharia</button>
             <button onClick={() => setTab('news')} style={{ flex: 1, background: tab === 'news' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Notícias</button>
             <button onClick={() => setTab('history')} style={{ flex: 1, background: tab === 'history' ? '#2563eb' : '#334155', color: '#fff', border: 'none', padding: '8px 4px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>Galeria</button>
@@ -412,6 +423,21 @@ export default function App() {
               ) : (
                 <p style={{ color: '#4ade80', fontWeight: 'bold' }}>Campeão da Copa: {cupWinner}</p>
               )}
+            </div>
+          )}
+
+          {tab === 'stadium' && (
+            <div style={{ background: '#1e293b', padding: '16px', borderRadius: '12px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '16px' }}>Estádio & Infraestrutura</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '13px' }}>
+                Capacidade Atual: <strong>{currentStadium.toLocaleString()} torcedores</strong>
+              </p>
+              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '16px' }}>
+                Renda estimada por jogo em casa: R$ {((currentStadium * 60) / 1000000).toFixed(2)}M
+              </p>
+              <button onClick={upgradeStadium} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', width: '100%', fontSize: '14px' }}>
+                Ampliar +10.000 Lugares (R$ 12.0M)
+              </button>
             </div>
           )}
 
